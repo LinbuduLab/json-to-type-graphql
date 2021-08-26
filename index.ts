@@ -16,45 +16,20 @@ import fs from "fs-extra";
 import { addImportDeclaration, ImportType } from "./ast";
 
 // json schema 2 ts?
+// 卧槽，还要处理数组
+// TODO: 结合 ObjectType 的配置
+// TODO: ? 与 !
+// TODO: 配置
+// rootClassName
+// optional field
+// apply ! to all field
+// readonly field
+// import all decorators
+//
 
-// { success: true, status: 500 }
 const content = jsonfile.readFileSync("./sample.json");
-console.log("content: ", content);
 
-// 预期：
-// className 来自于 配置
-// fields
-//   nested: boolean
-//   type: "string" | "boolean" | "number"
-//   prop
-
-// 处理时：
-// 对于 nested 为 false 直接添加
-// @Field(() => decoratorReturnType)
-// prop: type
-// 对于 nested 为 true
-// 添加
-// @Field(() => `capitalize(prop)${Type}`)
-// prop: `capitalize(prop)${Type}`
-// 额外创建一个 classname 为 `capitalize(prop)${Type}` 的递归处理
-
-// parse
-// generate & hook
-// output
-
-// TODO:
-// Morpher Creator Support
-// Generate from request
-// Custom Config！
-
-// 检查是不是真的 object
-type PossibleFieldType =
-  | "string"
-  | "boolean"
-  | "number"
-  | "object"
-  | string
-  | PlainObject;
+type PossibleFieldType = "string" | "boolean" | "number" | string | PlainObject;
 
 type PlainObject = Record<string, unknown>;
 
@@ -67,14 +42,15 @@ type ProcessedFieldInfo = {
   nested: boolean;
   prop: string;
   decoratorReturnType: GraphQLScalarType | string | null;
-  fields?: Record<string, ProcessedFieldInfo>;
+  fields?: ProcessedFieldInfoObject;
+  // TODO:
+  list?: boolean;
 };
 
-function parser(content: OriginObject): Record<string, ProcessedFieldInfo> {
-  const parsedFieldInfo: Record<string, ProcessedFieldInfo> = {};
+function parser(content: OriginObject): ProcessedFieldInfoObject {
+  const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
   for (const [k, v] of Object.entries(content)) {
-    // use Object.toString.call
     switch (typeof v) {
       case "string":
       case "boolean":
@@ -97,6 +73,7 @@ function parser(content: OriginObject): Record<string, ProcessedFieldInfo> {
 
         break;
 
+      // use Object.toString.call instead
       case "object":
         parsedFieldInfo[k] = {
           type: capitalCase(k),
@@ -112,9 +89,10 @@ function parser(content: OriginObject): Record<string, ProcessedFieldInfo> {
   return parsedFieldInfo;
 }
 
+fs.rmSync("./testing.ts");
+fs.createFileSync("./testing.ts");
 const source = new Project().addSourceFileAtPath("./testing.ts");
 
-// TODO: 根据使用到的装饰器按需添加
 addImportDeclaration(
   source,
   ["ObjectType", "Field", "Int", "ID"],
@@ -126,11 +104,6 @@ function generator(
   parsed: Record<string, ProcessedFieldInfo>,
   className?: string
 ): void {
-  console.log("parsed: ", parsed);
-  // fs.rmSync("./testing.ts");
-  // fs.createFileSync("./testing.ts");
-
-  // TODO: 结合 ObjectType 的配置
   const classDecorator: OptionalKind<DecoratorStructure>[] = [
     {
       name: "ObjectType",
@@ -139,15 +112,8 @@ function generator(
   ];
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
-  // TODO: ? 与 !
-  for (const [k, v] of Object.entries(parsed)) {
-    if (v.nested) {
-      generator(v.fields!, v.type as string);
-    }
-
-    const fieldDecoratorArgs = v.decoratorReturnType
-      ? [`(type) => ${v.decoratorReturnType}`]
-      : [];
+  for (const [, v] of Object.entries(parsed)) {
+    if (v.nested) generator(v.fields!, v.type as string);
 
     properties.push({
       name: v.prop,
@@ -155,16 +121,16 @@ function generator(
       decorators: [
         {
           name: "Field",
-          arguments: fieldDecoratorArgs,
+          arguments: v.decoratorReturnType
+            ? [`(type) => ${v.decoratorReturnType}`]
+            : [],
         },
       ],
       scope: Scope.Public,
       trailingTrivia: (writer) => writer.newLine(),
-      hasExclamationToken: false,
+      hasExclamationToken: true,
       hasQuestionToken: false,
       isReadonly: false,
-      isAbstract: false,
-      isStatic: false,
     });
   }
 
@@ -173,9 +139,10 @@ function generator(
     name: className ?? "__TMP_CLASS_NAME__",
     decorators: classDecorator,
     properties,
+    isExported: true,
   });
 
-  // source.saveSync();
+  source.saveSync();
 }
 
 function generatorTest() {
