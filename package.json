@@ -10,6 +10,7 @@
     "fs-extra": "^10.0.0",
     "graphql": "^15.5.1",
     "jsonfile": "^6.1.0",
+    "lodash": "^4.17.21",
     "prettier": "^2.3.2",
     "ts-morph": "^11.0.3",
     "ts-node-dev": "^1.1.8",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/fs-extra": "^9.0.12",
     "@types/jsonfile": "^6.0.1",
+    "@types/lodash": "^4.14.172",
     "@types/prettier": "^2.3.2",
     "consola": "^2.15.3"
   }

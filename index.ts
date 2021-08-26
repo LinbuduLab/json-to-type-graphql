@@ -15,6 +15,9 @@ import {
 import fs from "fs-extra";
 import prettier from "prettier";
 import { addImportDeclaration, ImportType } from "./ast";
+import intersection from "lodash/intersection";
+import uniqBy from "lodash/uniqBy";
+import remove from "lodash/remove";
 
 // json schema 2 ts?
 // 卧槽，还要处理数组
@@ -29,6 +32,7 @@ import { addImportDeclaration, ImportType } from "./ast";
 // public keyword
 // apply ! to all list decorator types
 // id field
+//
 
 const content = jsonfile.readFileSync("./sample.json");
 
@@ -54,6 +58,7 @@ type ProcessedFieldInfo = {
   fields?: ProcessedFieldInfoObject;
   // TODO:
   list?: boolean;
+  objectList?: boolean;
 };
 
 function parser(content: OriginObject): ProcessedFieldInfoObject {
@@ -90,13 +95,22 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
 
       case "object":
         parsedFieldInfo[k] = Array.isArray(v)
-          ? {
-              type: arrayItemType(v),
-              nested: false,
-              list: true,
-              prop: k,
-              decoratorReturnType: `${arrayItemType(v)}[]`,
-            }
+          ? typeof v[0] === "object"
+            ? {
+                type: inferObjectTypeFromArray(v),
+                nested: false,
+                list: true,
+                objectList: true,
+                prop: k,
+                decoratorReturnType: `${arrayItemType(v)}[]`,
+              }
+            : {
+                type: arrayItemType(v),
+                nested: false,
+                list: true,
+                prop: k,
+                decoratorReturnType: `${arrayItemType(v)}[]`,
+              }
           : {
               type: capitalCase(k),
               nested: true,
@@ -113,6 +127,68 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
 
 function arrayItemType<T extends any[]>(arr: T[]) {
   return typeof arr[0];
+}
+
+type InferredObjectType = {
+  key: string;
+  shared: boolean;
+  type: PossibleFieldType;
+};
+
+console.log(
+  inferObjectTypeFromArray([
+    { a: 1, b: "1", c: true },
+    { a: 1, b: "1" },
+    { b: 1, v: "1" },
+    { b: 1, c: false },
+  ])
+);
+
+// TODO: 把所有对象的key拿出来 key: string[]
+// 取交集
+// 不在交集的 加? nullable: true
+// [{a,b}]
+function inferObjectTypeFromArray<T extends PlainObject>(arr: T[]) {
+  const keys: string[][] = [];
+  const processedArrayObjectKey: {
+    abstractType: string;
+    contains: InferredObjectType[];
+  } = {
+    abstractType: "__SHARED_ARRAY_OBJECT__",
+    contains: [],
+  };
+
+  for (const item of arr) {
+    keys.push(Object.keys(item));
+  }
+
+  const intersectionProps = intersection(...keys);
+
+  // 处理交集键
+  intersectionProps.forEach((prop) => {
+    processedArrayObjectKey.contains.push({
+      key: prop,
+      shared: true,
+      type: typeof arr[0][prop],
+    });
+  });
+
+  for (const item of arr) {
+    for (const [k, v] of Object.entries(item)) {
+      processedArrayObjectKey.contains.push({
+        key: k,
+        shared: false,
+        type: typeof v,
+      });
+    }
+  }
+
+  processedArrayObjectKey.contains = remove(
+    uniqBy(processedArrayObjectKey.contains, (key) => key.key),
+    (item) => !intersectionProps.includes(item.key)
+  );
+
+  return processedArrayObjectKey;
 }
 
 fs.rmSync("./testing.ts");
@@ -175,6 +251,8 @@ function generator(
   source.saveSync();
 }
 
+// 看起来需要一个专门处理 Record[] 类型的 generator？
+
 function formatter() {}
 
 // consola.log(
@@ -183,4 +261,4 @@ function formatter() {}
 //   })
 // );
 
-generator(parser(content));
+// generator(parser(content));
