@@ -4,6 +4,16 @@ import { capitalCase } from "capital-case";
 import { Int } from "type-graphql";
 import consola from "consola";
 import util from "util";
+import {
+  DecoratorStructure,
+  OptionalKind,
+  Project,
+  PropertyDeclarationStructure,
+  Scope,
+  SourceFile,
+} from "ts-morph";
+import fs from "fs-extra";
+import { addImportDeclaration, ImportType } from "./ast";
 
 // json schema 2 ts?
 
@@ -49,6 +59,8 @@ type PossibleFieldType =
 type PlainObject = Record<string, unknown>;
 
 type OriginObject = Record<string, PossibleFieldType>;
+
+type ProcessedFieldInfoObject = Record<string, ProcessedFieldInfo>;
 
 type ProcessedFieldInfo = {
   type: PossibleFieldType;
@@ -100,8 +112,116 @@ function parser(content: OriginObject): Record<string, ProcessedFieldInfo> {
   return parsedFieldInfo;
 }
 
-consola.log(
-  util.inspect(parser(content), {
-    depth: 999,
-  })
+const source = new Project().addSourceFileAtPath("./testing.ts");
+
+// TODO: 根据使用到的装饰器按需添加
+addImportDeclaration(
+  source,
+  ["ObjectType", "Field", "Int", "ID"],
+  "type-graphql",
+  ImportType.NAMED_IMPORTS
 );
+
+function generator(
+  parsed: Record<string, ProcessedFieldInfo>,
+  className?: string
+): void {
+  console.log("parsed: ", parsed);
+  // fs.rmSync("./testing.ts");
+  // fs.createFileSync("./testing.ts");
+
+  // TODO: 结合 ObjectType 的配置
+  const classDecorator: OptionalKind<DecoratorStructure>[] = [
+    {
+      name: "ObjectType",
+      arguments: [],
+    },
+  ];
+  const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
+
+  // TODO: ? 与 !
+  for (const [k, v] of Object.entries(parsed)) {
+    if (v.nested) {
+      generator(v.fields!, v.type as string);
+    }
+
+    const fieldDecoratorArgs = v.decoratorReturnType
+      ? [`(type) => ${v.decoratorReturnType}`]
+      : [];
+
+    properties.push({
+      name: v.prop,
+      type: v.type as string,
+      decorators: [
+        {
+          name: "Field",
+          arguments: fieldDecoratorArgs,
+        },
+      ],
+      scope: Scope.Public,
+      trailingTrivia: (writer) => writer.newLine(),
+      hasExclamationToken: false,
+      hasQuestionToken: false,
+      isReadonly: false,
+      isAbstract: false,
+      isStatic: false,
+    });
+  }
+
+  // TODO: export
+  source.addClass({
+    name: className ?? "__TMP_CLASS_NAME__",
+    decorators: classDecorator,
+    properties,
+  });
+
+  // source.saveSync();
+}
+
+function generatorTest() {
+  fs.rmSync("./testing.ts");
+
+  fs.createFileSync("./testing.ts");
+
+  const source = new Project().addSourceFileAtPath("./testing.ts");
+
+  addImportDeclaration(
+    source,
+    ["ObjectType", "Field", "Int", "ID"],
+    "type-graphql",
+    ImportType.NAMED_IMPORTS
+  );
+
+  source.addClass({
+    name: "WuhuType",
+    decorators: [
+      {
+        name: "ObjectType",
+        arguments: [],
+      },
+    ],
+    properties: [
+      {
+        name: "foo",
+        type: "number",
+        decorators: [
+          {
+            name: "Field",
+            arguments: ["(type) => Int"],
+          },
+        ],
+      },
+    ],
+    methods: [],
+  });
+
+  source.saveSync();
+}
+
+// consola.log(
+//   util.inspect(parser(content), {
+//     depth: 999,
+//   })
+// );
+
+generator(parser(content));
