@@ -6,6 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "@types/node": "^16.7.2",
+    "capital-case": "^1.0.4",
     "graphql": "^15.5.1",
     "jsonfile": "^6.1.0",
     "ts-node-dev": "^1.1.8",
@@ -13,6 +14,7 @@
     "typescript": "^4.3.5"
   },
   "devDependencies": {
-    "@types/jsonfile": "^6.0.1"
+    "@types/jsonfile": "^6.0.1",
+    "consola": "^2.15.3"
   }
 }

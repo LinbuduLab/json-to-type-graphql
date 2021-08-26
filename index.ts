@@ -1,5 +1,9 @@
 import jsonfile from "jsonfile";
+import { GraphQLScalarType } from "graphql";
+import { capitalCase } from "capital-case";
 import { Int } from "type-graphql";
+import consola from "consola";
+import util from "util";
 
 // json schema 2 ts?
 
@@ -28,35 +32,76 @@ console.log("content: ", content);
 // generate & hook
 // output
 
-const processed: Record<
-  string,
-  {
-    type: "string" | "boolean" | "number";
-    nested: boolean;
-    prop: string;
-    decoratorReturnType: any;
+// TODO:
+// Morpher Creator Support
+// Generate from request
+// Custom Config！
+
+// 检查是不是真的 object
+type PossibleFieldType =
+  | "string"
+  | "boolean"
+  | "number"
+  | "object"
+  | string
+  | PlainObject;
+
+type PlainObject = Record<string, unknown>;
+
+type OriginObject = Record<string, PossibleFieldType>;
+
+type ProcessedFieldInfo = {
+  type: PossibleFieldType;
+  nested: boolean;
+  prop: string;
+  decoratorReturnType: GraphQLScalarType | string | null;
+  fields?: Record<string, ProcessedFieldInfo>;
+};
+
+function parser(content: OriginObject): Record<string, ProcessedFieldInfo> {
+  const parsedFieldInfo: Record<string, ProcessedFieldInfo> = {};
+
+  for (const [k, v] of Object.entries(content)) {
+    // use Object.toString.call
+    switch (typeof v) {
+      case "string":
+      case "boolean":
+        parsedFieldInfo[k] = {
+          type: typeof v as "string" | "boolean" | "number",
+          nested: false,
+          prop: k,
+          decoratorReturnType: null,
+        };
+
+        break;
+
+      case "number":
+        parsedFieldInfo[k] = {
+          type: "number",
+          nested: false,
+          prop: k,
+          decoratorReturnType: "Int",
+        };
+
+        break;
+
+      case "object":
+        parsedFieldInfo[k] = {
+          type: capitalCase(k),
+          nested: true,
+          prop: k,
+          decoratorReturnType: capitalCase(k),
+          fields: parser(content[k] as OriginObject),
+        };
+        break;
+    }
   }
-> = {};
 
-for (const [k, v] of Object.entries(content)) {
-  console.log(k, v);
-
-  switch (typeof v) {
-    case "string":
-    case "boolean":
-      processed[k] = {
-        type: typeof v as "string" | "boolean" | "number",
-        nested: false,
-        prop: k,
-        decoratorReturnType: null,
-      };
-
-    case "number":
-      processed[k] = {
-        type: "number",
-        nested: false,
-        prop: k,
-        decoratorReturnType: Int,
-      };
-  }
+  return parsedFieldInfo;
 }
+
+consola.log(
+  util.inspect(parser(content), {
+    depth: 999,
+  })
+);
