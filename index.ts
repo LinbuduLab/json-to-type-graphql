@@ -32,7 +32,7 @@ import remove from "lodash/remove";
 // public keyword
 // apply ! to all list decorator types
 // id field
-//
+// 'Type' suffix
 
 const content = jsonfile.readFileSync("./sample.json");
 
@@ -96,20 +96,23 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
       case "object":
         parsedFieldInfo[k] = Array.isArray(v)
           ? typeof v[0] === "object"
-            ? {
-                type: inferObjectTypeFromArray(v),
-                nested: false,
+            ? // 对象类型组成的数组
+              {
+                type: inferObjectTypeFromArray(k, v),
+                nested: true,
                 list: true,
                 objectList: true,
                 prop: k,
-                decoratorReturnType: `${arrayItemType(v)}[]`,
+                decoratorReturnType: null,
               }
             : {
                 type: arrayItemType(v),
                 nested: false,
                 list: true,
                 prop: k,
-                decoratorReturnType: `${arrayItemType(v)}[]`,
+                decoratorReturnType: `[${
+                  arrayItemType(v) === "number" ? "Int" : arrayItemType(v)
+                }]`,
               }
           : {
               type: capitalCase(k),
@@ -135,26 +138,22 @@ type InferredObjectType = {
   type: PossibleFieldType;
 };
 
-console.log(
-  inferObjectTypeFromArray([
-    { a: 1, b: "1", c: true },
-    { a: 1, b: "1" },
-    { b: 1, v: "1" },
-    { b: 1, c: false },
-  ])
-);
+type ObjectTypeRecord = {
+  abstractType: string;
+  contains: InferredObjectType[];
+};
 
 // TODO: 把所有对象的key拿出来 key: string[]
 // 取交集
 // 不在交集的 加? nullable: true
 // [{a,b}]
-function inferObjectTypeFromArray<T extends PlainObject>(arr: T[]) {
+function inferObjectTypeFromArray<T extends PlainObject>(
+  key: string,
+  arr: T[]
+) {
   const keys: string[][] = [];
-  const processedArrayObjectKey: {
-    abstractType: string;
-    contains: InferredObjectType[];
-  } = {
-    abstractType: "__SHARED_ARRAY_OBJECT__",
+  const processedArrayObjectKey: ObjectTypeRecord = {
+    abstractType: `${capitalCase(key)}`,
     contains: [],
   };
 
@@ -185,8 +184,10 @@ function inferObjectTypeFromArray<T extends PlainObject>(arr: T[]) {
 
   processedArrayObjectKey.contains = remove(
     uniqBy(processedArrayObjectKey.contains, (key) => key.key),
-    (item) => !intersectionProps.includes(item.key)
+    (item) => !(intersectionProps.includes(item.key) && !item.shared)
   );
+
+  console.log("processedArrayObjectKey: ", processedArrayObjectKey);
 
   return processedArrayObjectKey;
 }
@@ -203,8 +204,8 @@ addImportDeclaration(
 );
 
 function generator(
-  parsed: Record<string, ProcessedFieldInfo>,
-  className?: string
+  parsed: ProcessedFieldInfoObject,
+  className = "__TMP_CLASS_NAME__"
 ): void {
   const classDecorator: OptionalKind<DecoratorStructure>[] = [
     {
@@ -217,8 +218,9 @@ function generator(
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested) generator(v.fields!, v.type as string);
 
-    const fieldReturnType =
-      v.type === "number" ? (v.list ? `[Int]` : `Int`) : `${v.type}`;
+    const fieldReturnType = v.decoratorReturnType
+      ? [`(type) => ${v.decoratorReturnType}`]
+      : [];
 
     // 用 reduce 可能更好
     properties.push({
@@ -227,9 +229,7 @@ function generator(
       decorators: [
         {
           name: "Field",
-          arguments: ["string", "boolean"].includes(v.type as string)
-            ? []
-            : [`(type) => ${fieldReturnType}`],
+          arguments: fieldReturnType,
         },
       ],
       // scope: Scope.Public,
@@ -240,15 +240,51 @@ function generator(
     });
   }
 
-  // TODO: export
   source.addClass({
-    name: className ?? "__TMP_CLASS_NAME__",
+    name: className,
     decorators: classDecorator,
     properties,
     isExported: true,
   });
 
   source.saveSync();
+}
+
+function objectArrayHandler(info: ObjectTypeRecord, classIdentifier: string) {
+  // 原 class 需要加上一个 field 指向这个对象类型
+  // 为这个field新建一个对象类型
+  const classDecorator: OptionalKind<DecoratorStructure>[] = [
+    {
+      name: "ObjectType",
+      arguments: [],
+    },
+  ];
+  const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
+
+  for (const fields of info.contains) {
+    properties.push({
+      name: fields.key,
+      type: fields.type as string,
+      decorators: [
+        {
+          name: "Field",
+          arguments: [],
+        },
+      ],
+      // scope: Scope.Public,
+      trailingTrivia: (writer) => writer.newLine(),
+      hasExclamationToken: true,
+      hasQuestionToken: false,
+      isReadonly: false,
+    });
+  }
+
+  source.addClass({
+    name: info.abstractType,
+    decorators: classDecorator,
+    properties,
+    isExported: true,
+  });
 }
 
 // 看起来需要一个专门处理 Record[] 类型的 generator？
@@ -261,4 +297,6 @@ function formatter() {}
 //   })
 // );
 
-// generator(parser(content));
+generator(parser(content));
+
+// parser(content);
