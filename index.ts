@@ -13,6 +13,7 @@ import {
   SourceFile,
 } from "ts-morph";
 import fs from "fs-extra";
+import prettier from "prettier";
 import { addImportDeclaration, ImportType } from "./ast";
 
 // json schema 2 ts?
@@ -25,11 +26,19 @@ import { addImportDeclaration, ImportType } from "./ast";
 // apply ! to all field
 // readonly field
 // import all decorators
-//
+// public keyword
+// apply ! to all list decorator types
+// id field
 
 const content = jsonfile.readFileSync("./sample.json");
 
-type PossibleFieldType = "string" | "boolean" | "number" | string | PlainObject;
+type PossibleFieldType =
+  | "string"
+  | "boolean"
+  | "number"
+  | "array"
+  | string
+  | PlainObject;
 
 type PlainObject = Record<string, unknown>;
 
@@ -74,19 +83,36 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
         break;
 
       // use Object.toString.call instead
+      // numberFieldHandler ...
+      // 先处理原始类型数组吧
+      // 对于数组：查看是否是同一类型，不是就直接跳掉
+      // 对于同一类型 先拿到
+
       case "object":
-        parsedFieldInfo[k] = {
-          type: capitalCase(k),
-          nested: true,
-          prop: k,
-          decoratorReturnType: capitalCase(k),
-          fields: parser(content[k] as OriginObject),
-        };
+        parsedFieldInfo[k] = Array.isArray(v)
+          ? {
+              type: arrayItemType(v),
+              nested: false,
+              list: true,
+              prop: k,
+              decoratorReturnType: `${arrayItemType(v)}[]`,
+            }
+          : {
+              type: capitalCase(k),
+              nested: true,
+              prop: k,
+              decoratorReturnType: capitalCase(k),
+              fields: parser(content[k] as OriginObject),
+            };
         break;
     }
   }
 
   return parsedFieldInfo;
+}
+
+function arrayItemType<T extends any[]>(arr: T[]) {
+  return typeof arr[0];
 }
 
 fs.rmSync("./testing.ts");
@@ -115,18 +141,22 @@ function generator(
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested) generator(v.fields!, v.type as string);
 
+    const fieldReturnType =
+      v.type === "number" ? (v.list ? `[Int]` : `Int`) : `${v.type}`;
+
+    // 用 reduce 可能更好
     properties.push({
       name: v.prop,
-      type: v.type as string,
+      type: v.list ? `${v.type}[]` : (v.type as string),
       decorators: [
         {
           name: "Field",
-          arguments: v.decoratorReturnType
-            ? [`(type) => ${v.decoratorReturnType}`]
-            : [],
+          arguments: ["string", "boolean"].includes(v.type as string)
+            ? []
+            : [`(type) => ${fieldReturnType}`],
         },
       ],
-      scope: Scope.Public,
+      // scope: Scope.Public,
       trailingTrivia: (writer) => writer.newLine(),
       hasExclamationToken: true,
       hasQuestionToken: false,
@@ -145,45 +175,7 @@ function generator(
   source.saveSync();
 }
 
-function generatorTest() {
-  fs.rmSync("./testing.ts");
-
-  fs.createFileSync("./testing.ts");
-
-  const source = new Project().addSourceFileAtPath("./testing.ts");
-
-  addImportDeclaration(
-    source,
-    ["ObjectType", "Field", "Int", "ID"],
-    "type-graphql",
-    ImportType.NAMED_IMPORTS
-  );
-
-  source.addClass({
-    name: "WuhuType",
-    decorators: [
-      {
-        name: "ObjectType",
-        arguments: [],
-      },
-    ],
-    properties: [
-      {
-        name: "foo",
-        type: "number",
-        decorators: [
-          {
-            name: "Field",
-            arguments: ["(type) => Int"],
-          },
-        ],
-      },
-    ],
-    methods: [],
-  });
-
-  source.saveSync();
-}
+function formatter() {}
 
 // consola.log(
 //   util.inspect(parser(content), {

@@ -3,20 +3,26 @@ import { ObjectType, Field, Int, ID } from "type-graphql";
 @ObjectType()
 export class Nested {
     @Field()
-    public name!: string;
+    name!: string;
 
     @Field((type) => Int)
-    public age!: number;
+    age!: number;
+
+    @Field((type) => [Int])
+    arrayField!: number[];
 }
 
 @ObjectType()
 export class __TMP_CLASS_NAME__ {
     @Field()
-    public success!: boolean;
+    success!: boolean;
 
     @Field((type) => Int)
-    public status!: number;
+    status!: number;
 
     @Field((type) => Nested)
-    public nested!: Nested;
+    nested!: Nested;
+
+    @Field((type) => [Int])
+    arrayField!: number[];
 }

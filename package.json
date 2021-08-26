@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/fs-extra": "^9.0.12",
     "@types/jsonfile": "^6.0.1",
+    "@types/prettier": "^2.3.2",
     "consola": "^2.15.3"
   }
 }
