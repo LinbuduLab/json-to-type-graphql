@@ -1,8 +1,10 @@
+import { Options as PrettierOptions } from "prettier";
+
 export type PlainObject = Record<string, unknown>;
 
-export type SourceObject = Record<string, ValidPrimitive & "object">;
+export type SourceObject = Record<string, ValidPrimitiveType | "object">;
 
-export type ValidPrimitive = "string" | "number" | "boolean";
+export type ValidPrimitiveType = "string" | "number" | "boolean";
 
 export type ParserOptions = {
   forceNonNullable: boolean;
@@ -18,12 +20,12 @@ export type GeneratorOptions = {
 
 export type FormatterOptions = {
   disable: boolean;
-};
+} & PrettierOptions;
 
 export type Options = {
   parser?: Partial<ParserOptions>;
   generator?: Partial<GeneratorOptions>;
-  formatter: FormatterOptions;
+  formatter?: FormatterOptions;
 };
 
 export type ParsedFieldInfo = {

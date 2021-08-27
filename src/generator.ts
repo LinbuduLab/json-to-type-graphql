@@ -1,5 +1,3 @@
-import jsonfile from "jsonfile";
-import fs from "fs-extra";
 import { capitalCase } from "capital-case";
 import {
   OptionalKind,
@@ -17,8 +15,6 @@ export function generatorWrapper(
   parsed: ProcessedFieldInfoObject,
   options?: Options["generator"]
 ) {
-  // 是不是可以直接返回数组形式
-
   const source = new Project().addSourceFileAtPath(outputPath);
 
   addImportDeclaration(

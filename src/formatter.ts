@@ -1,10 +1,13 @@
 import prettier from "prettier";
 import fs from "fs-extra";
+import { Options } from "./utils";
 
-export function formatter(content: string, outputPath: string) {
-  const formatted = prettier.format(content, {
+export function formatter(outputPath: string, options?: Options["formatter"]) {
+  const formatted = prettier.format(fs.readFileSync(outputPath, "utf-8"), {
     parser: "typescript",
+    tabWidth: 2,
+    ...options,
   });
 
-  fs.writeFileSync(formatted, outputPath);
+  fs.writeFileSync(outputPath, formatted);
 }

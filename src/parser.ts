@@ -1,9 +1,10 @@
 import { capitalCase } from "capital-case";
-import { intersection, uniqBy } from "lodash";
+import intersection from "lodash/intersection";
+import uniqBy from "lodash/uniqBy";
 import {
   SourceObject,
   Options,
-  ValidPrimitive,
+  ValidPrimitiveType,
   ProcessedFieldInfoObject,
   strictTypeChecker,
   ValidFieldType,
@@ -13,7 +14,7 @@ import {
 } from "./utils";
 
 export function parser(
-  content: SourceObject | SourceObject[] | ValidPrimitive[],
+  content: SourceObject | SourceObject[] | ValidPrimitiveType[],
   options?: Options["parser"]
 ): ProcessedFieldInfoObject {
   const { forceNonNullable = false, forceReturnType = false } = options ?? {};
@@ -96,7 +97,10 @@ export function parser(
           prop: k,
           nullable: false,
           decoratorReturnType: capitalCasedKey,
-          fields: parser(v, { forceNonNullable, forceReturnType }),
+          fields: parser(v as unknown as SourceObject, {
+            forceNonNullable,
+            forceReturnType,
+          }),
         };
 
         break;
@@ -116,7 +120,6 @@ export function parser(
 
       case ValidFieldType.Primitive_Array:
         parsedFieldInfo[k] = {
-          // 原始类型组成的数组
           type,
           propType: typeof v[0],
           nested: false,
@@ -142,7 +145,10 @@ export function parser(
           nested: true,
           nullable: false,
           prop: k,
-          fields: objectArrayParser(v, { forceNonNullable, forceReturnType }),
+          fields: objectArrayParser(v as unknown as PlainObject[], {
+            forceNonNullable,
+            forceReturnType,
+          }),
         };
 
       case ValidFieldType.Null:
@@ -170,23 +176,12 @@ export function objectArrayParser<T extends PlainObject>(
     keys.push(Object.keys(item));
   }
 
-  // 在所有成员中都存在的键
   const intersectionKeys = intersection(...keys);
 
-  // 但不一定所有成员中都有值 所以要再次遍历找到一个值一定为真的 使用这个真值作为类型
   intersectionKeys.forEach((key) => {
-    // 要考虑 0 "" 这种
     const nonNullSharedItem = arr.filter(
       (item) => item[key] === 0 || item[key] === "" || !![item[key]]
     );
-
-    // 如果没有 就置为object！并且 AST 生成的时候加注释
-
-    const nonNullSharedItemType = nonNullSharedItem.length
-      ? typeof nonNullSharedItem[0][key]
-      : "object";
-
-    // 这个选出来的值直接交给 parser 处理
 
     parsedKeys.push({
       ...parser(nonNullSharedItem[0] as SourceObject, {
@@ -198,14 +193,11 @@ export function objectArrayParser<T extends PlainObject>(
     });
   });
 
-  // 遍历所有对象类型的成员 移除交集中存在的键
   for (const item of arr) {
     intersectionKeys.forEach((key) => {
       key in item && delete item[key];
     });
   }
-
-  // 处理剩下的
 
   for (const item of arr) {
     for (const [k, v] of Object.entries(item)) {
