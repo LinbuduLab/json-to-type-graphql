@@ -60,6 +60,7 @@ type ProcessedFieldInfo = {
   nullable: boolean;
   decoratorReturnType: string | null;
   fields: ProcessedFieldInfoObject | null;
+  shared?: boolean;
 };
 
 function parser(content: OriginObject): ProcessedFieldInfoObject {
@@ -102,16 +103,31 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
 
       case "object":
         parsedFieldInfo[k] = Array.isArray(v)
-          ? {
-              // 原始类型组成的数组
-              type: arrayItemType(v) as any,
-              nested: false,
-              list: true,
-              prop: k,
-              nullable: false,
-              fields: null,
-              decoratorReturnType: arrayItemType(v) === "number" ? "Int" : null,
-            }
+          ? typeof v[0] === "object"
+            ? {
+                type: capitalCase(k, {
+                  delimiter: "",
+                }),
+                list: true,
+                decoratorReturnType: capitalCase(k, {
+                  delimiter: "",
+                }),
+                nested: true,
+                nullable: false,
+                prop: k,
+                fields: objectArrayParser(v),
+              }
+            : {
+                // 原始类型组成的数组
+                type: arrayItemType(v) as any,
+                nested: false,
+                list: true,
+                prop: k,
+                nullable: false,
+                fields: null,
+                decoratorReturnType:
+                  arrayItemType(v) === "number" ? "Int" : null,
+              }
           : {
               // 普通对象
               type: capitalCase(k, {
@@ -147,6 +163,79 @@ type ObjectTypeRecord = {
   abstractType: string;
   contains: InferredObjectType[];
 };
+
+//
+function objectArrayParser<T extends PlainObject>(
+  arr: T[]
+): ProcessedFieldInfoObject {
+  const keys: string[][] = [];
+  const processedKeys: ProcessedFieldInfo[] = [];
+
+  const processedResult: ProcessedFieldInfoObject = {};
+
+  for (const item of arr) {
+    keys.push(Object.keys(item));
+  }
+
+  // 在所有成员中都存在
+  const intersectionKeys = intersection(...keys);
+
+  // 但不一定所有成员中都有值 所以要再次遍历找到一个值为真的
+
+  intersectionKeys.forEach((key) => {
+    // 要考虑 0 "" 这种
+    const nonNullSharedItem = arr.filter(
+      (item) => item[key] === 0 || item[key] === "" || !![item[key]]
+    );
+
+    // 如果没有 就置为object！并且 AST 生成的时候加注释
+
+    const nonNullSharedItemType = nonNullSharedItem.length
+      ? typeof nonNullSharedItem[0][key]
+      : "object";
+
+    // 这个选出来的值应该直接交给 parser 处理
+    // 只是把最后的 shared 附加上去？
+
+    // console.log(parser(nonNullSharedItem[0] as OriginObject));
+
+    processedKeys.push({
+      ...parser(nonNullSharedItem[0] as OriginObject)[key],
+      shared: true,
+    });
+  });
+
+  // 处理剩下的
+
+  for (const item of arr) {
+    for (const [k, v] of Object.entries(item)) {
+      console.log(parser({ [k]: v } as OriginObject));
+
+      processedKeys.push({
+        prop: k,
+        type: typeof v,
+        nullable: true,
+        list: false,
+        nested: false,
+        fields: null,
+        shared: false,
+        decoratorReturnType: typeof v === "number" ? "Int" : null,
+        // ...parser({k:v} as OriginObject),
+      });
+    }
+  }
+
+  const result = remove(
+    uniqBy(processedKeys, (key) => key.prop),
+    (item) => !(intersectionKeys.includes(item.prop) && !item.shared)
+  );
+
+  result.forEach((item) => {
+    processedResult[item.prop] = item;
+  });
+
+  return processedResult;
+}
 
 // TODO: 把所有对象的key拿出来 key: string[]
 // 取交集
@@ -226,7 +315,9 @@ function generator(
     if (v.nested) generator(v.fields!, v.type as string);
 
     const fieldReturnType = v.decoratorReturnType
-      ? [`(type) => ${v.decoratorReturnType}`]
+      ? v.list
+        ? [`(type) => [${v.decoratorReturnType}]`]
+        : [`(type) => ${v.decoratorReturnType}`]
       : [];
 
     // 用 reduce 可能更好
