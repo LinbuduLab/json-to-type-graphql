@@ -18,6 +18,7 @@ import { addImportDeclaration, ImportType } from "./ast";
 import intersection from "lodash/intersection";
 import uniqBy from "lodash/uniqBy";
 import remove from "lodash/remove";
+import got from "got";
 
 // json schema 2 ts?
 // 卧槽，还要处理数组
@@ -33,6 +34,18 @@ import remove from "lodash/remove";
 // apply ! to all list decorator types
 // id field
 // 'Type' suffix
+
+// TODO: 配置选项
+// rootClassName -> 最初创建的首个顶层 Class 名
+// optional field -> 支持 "a.b.c" ?
+// readonly field
+// public -> 为所有字段增加 public 关键词
+// suffix -> true "Type" string -> 这里就不capital了
+// forceNonNullable -> 在对象类型数组中，强制将所有键设置为!
+// TODO: 能力支持
+// 支持仅 generator 或 仅 parser
+// 支持从 请求 生成(by got?)
+// prisma 支持? 以后再说呗
 
 const content = jsonfile.readFileSync("./sample.json");
 
@@ -63,11 +76,44 @@ type ProcessedFieldInfo = {
   shared?: boolean;
 };
 
-function parser(content: OriginObject): ProcessedFieldInfoObject {
+function parser(
+  content: OriginObject | OriginObject[]
+): ProcessedFieldInfoObject {
   const parsedFieldInfo: ProcessedFieldInfoObject = {};
+
+  if (Array.isArray(content)) {
+    const randomItem = content[0];
+
+    parsedFieldInfo["TMP"] =
+      typeof randomItem === "object"
+        ? {
+            type: "Data",
+            list: true,
+            decoratorReturnType: "Data",
+            nested: true,
+            nullable: false,
+            prop: "data",
+            fields: objectArrayParser(content),
+          }
+        : {
+            // 原始类型组成的数组
+            type: typeof randomItem,
+            nested: false,
+            list: true,
+            prop: "data",
+            nullable: false,
+            fields: null,
+            decoratorReturnType: typeof randomItem === "number" ? "Int" : null,
+          };
+    return parsedFieldInfo;
+  }
 
   for (const [k, v] of Object.entries(content)) {
     switch (typeof v) {
+      case "symbol":
+      case "undefined":
+        break;
+
       case "string":
       case "boolean":
         parsedFieldInfo[k] = {
@@ -202,90 +248,36 @@ function objectArrayParser<T extends PlainObject>(
     processedKeys.push({
       ...parser(nonNullSharedItem[0] as OriginObject)[key],
       shared: true,
+      nullable: false,
     });
   });
+
+  // 遍历所有对象类型的成员 移除交集中存在的键
+  for (const item of arr) {
+    intersectionKeys.forEach((key) => {
+      key in item && delete item[key];
+    });
+  }
 
   // 处理剩下的
 
   for (const item of arr) {
     for (const [k, v] of Object.entries(item)) {
-      console.log(parser({ [k]: v } as OriginObject));
-
       processedKeys.push({
-        prop: k,
-        type: typeof v,
-        nullable: true,
-        list: false,
-        nested: false,
-        fields: null,
+        ...parser({ [k]: v } as OriginObject)[k],
         shared: false,
-        decoratorReturnType: typeof v === "number" ? "Int" : null,
-        // ...parser({k:v} as OriginObject),
+        nullable: true,
       });
     }
   }
 
-  const result = remove(
-    uniqBy(processedKeys, (key) => key.prop),
-    (item) => !(intersectionKeys.includes(item.prop) && !item.shared)
-  );
+  const result = uniqBy(processedKeys, (key) => key.prop);
 
   result.forEach((item) => {
     processedResult[item.prop] = item;
   });
 
   return processedResult;
-}
-
-// TODO: 把所有对象的key拿出来 key: string[]
-// 取交集
-// 不在交集的 加? nullable: true
-// [{a,b}]
-function inferObjectTypeFromArray<T extends PlainObject>(
-  key: string,
-  arr: T[]
-) {
-  const keys: string[][] = [];
-  const processedArrayObjectKey: ObjectTypeRecord = {
-    abstractType: `${capitalCase(key, {
-      delimiter: "",
-    })}`,
-    contains: [],
-  };
-
-  for (const item of arr) {
-    keys.push(Object.keys(item));
-  }
-
-  const intersectionProps = intersection(...keys);
-
-  // 处理交集键
-  intersectionProps.forEach((prop) => {
-    processedArrayObjectKey.contains.push({
-      key: prop,
-      shared: true,
-      type: typeof arr[0][prop],
-    });
-  });
-
-  for (const item of arr) {
-    for (const [k, v] of Object.entries(item)) {
-      processedArrayObjectKey.contains.push({
-        key: k,
-        shared: false,
-        type: typeof v,
-      });
-    }
-  }
-
-  processedArrayObjectKey.contains = remove(
-    uniqBy(processedArrayObjectKey.contains, (key) => key.key),
-    (item) => !(intersectionProps.includes(item.key) && !item.shared)
-  );
-
-  console.log("processedArrayObjectKey: ", processedArrayObjectKey);
-
-  return processedArrayObjectKey;
 }
 
 fs.rmSync("./testing.ts");
@@ -314,11 +306,15 @@ function generator(
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested) generator(v.fields!, v.type as string);
 
-    const fieldReturnType = v.decoratorReturnType
+    // nullable 为 false 时 [Type]!
+    // [Type!] 则由选项控制
+    const fieldReturnType: string[] = v.decoratorReturnType
       ? v.list
         ? [`(type) => [${v.decoratorReturnType}]`]
         : [`(type) => ${v.decoratorReturnType}`]
       : [];
+
+    if (v.nullable) fieldReturnType.push(`{ nullable: true }`);
 
     // 用 reduce 可能更好
     properties.push({
@@ -333,8 +329,8 @@ function generator(
       // scope: Scope.Public,
       trailingTrivia: (writer) => writer.newLine(),
       // nullable 为 true 的字段需要加? ，且 @Field 中需要对应的加参数，西内，有点麻烦属实
-      hasExclamationToken: true,
-      hasQuestionToken: false,
+      hasExclamationToken: !v.nullable,
+      hasQuestionToken: v.nullable,
       isReadonly: false,
     });
   }
@@ -390,12 +386,31 @@ function objectArrayHandler(info: ObjectTypeRecord, classIdentifier: string) {
 
 function formatter() {}
 
+// 啊这，对于上来就是数组的要咋处理呢
+
+// TODO: 处理这种数组形式
+
+(async () => {
+  const res = await got(
+    "https://baas-all-demo.pre-fc.alibaba-inc.com/summary?ids=594572481181"
+  );
+
+  // console.log(res.body);
+  // parser(JSON.parse(res.body));
+  // generator(parser(JSON.parse(res.body)[0]));
+  generator(parser(JSON.parse(res.body)));
+  // consola.log(
+  //   util.inspect(parser(JSON.parse(res.body)), {
+  //     depth: 999,
+  //   })
+  // );
+})();
+
 // consola.log(
 //   util.inspect(parser(content), {
 //     depth: 999,
 //   })
 // );
 
-generator(parser(content));
-
-// parser(content);
+// generator(parser(content));
+//

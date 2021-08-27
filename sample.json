@@ -1,6 +1,6 @@
 {
   "success": true,
-  "status": 500,
+  "status": 200,
   "nested": {
     "name": "linbudu",
     "age": 18,
@@ -14,7 +14,21 @@
     },
     {
       "fa": 1,
-      "fc": 2
+      "fc": 2,
+      "fd": [1, 2, 3, 4, 5]
+    },
+    {
+      "fe": {
+        "fea": 1,
+        "feb": [1, 2, 3, 4, 5],
+        "fec": [
+          {
+            "feca": 1,
+            "fecb": false,
+            "fecc": ["name", "age", "prop"]
+          }
+        ]
+      }
     }
   ]
 }

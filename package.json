@@ -8,6 +8,7 @@
     "@types/node": "^16.7.2",
     "capital-case": "^1.0.4",
     "fs-extra": "^10.0.0",
+    "got": "^11.8.2",
     "graphql": "^15.5.1",
     "jsonfile": "^6.1.0",
     "lodash": "^4.17.21",
