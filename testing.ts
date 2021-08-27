@@ -66,9 +66,9 @@ export class F {
 }
 
 @ObjectType()
-export class Root {
+export class __TMP_CLASS_NAME__ {
     @Field()
-    public success!: boolean;
+    success!: boolean;
 
     @Field((type) => Int)
     status!: number;
