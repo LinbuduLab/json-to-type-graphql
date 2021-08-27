@@ -12,6 +12,7 @@
     "jsonfile": "^6.1.0",
     "lodash": "^4.17.21",
     "prettier": "^2.3.2",
+    "string": "^3.3.3",
     "ts-morph": "^11.0.3",
     "ts-node-dev": "^1.1.8",
     "type-graphql": "^1.1.1",

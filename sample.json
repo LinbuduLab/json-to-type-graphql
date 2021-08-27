@@ -4,7 +4,17 @@
   "nested": {
     "name": "linbudu",
     "age": 18,
-    "arrayField": [1, 2, 3, 4, 5]
+    "arrayField": [1, 2, 3, 4, 5],
+    "nestedAgain": {
+      "nestedAgainIntKey": 1,
+      "nested_nested": {
+        "name": "Linbudu",
+        "arr": [1, 2, 3],
+        "nested_nested_nested": {
+          "name": "xxx"
+        }
+      }
+    }
   },
   "arrayField": [1, 2, 3, 4, 5]
 }

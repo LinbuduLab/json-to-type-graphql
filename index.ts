@@ -40,7 +40,9 @@ type PossibleFieldType =
   | "string"
   | "boolean"
   | "number"
+  | "object"
   | "array"
+  | "object_array"
   | string
   | PlainObject;
 
@@ -54,11 +56,10 @@ type ProcessedFieldInfo = {
   type: PossibleFieldType;
   nested: boolean;
   prop: string;
-  decoratorReturnType: GraphQLScalarType | string | null;
-  fields?: ProcessedFieldInfoObject;
-  // TODO:
-  list?: boolean;
-  objectList?: boolean;
+  list: boolean;
+  nullable: boolean;
+  decoratorReturnType: string | null;
+  fields: ProcessedFieldInfoObject | null;
 };
 
 function parser(content: OriginObject): ProcessedFieldInfoObject {
@@ -72,6 +73,9 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
           type: typeof v as "string" | "boolean" | "number",
           nested: false,
           prop: k,
+          nullable: false,
+          list: false,
+          fields: null,
           decoratorReturnType: null,
         };
 
@@ -82,6 +86,9 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
           type: "number",
           nested: false,
           prop: k,
+          nullable: false,
+          list: false,
+          fields: null,
           decoratorReturnType: "Int",
         };
 
@@ -95,30 +102,28 @@ function parser(content: OriginObject): ProcessedFieldInfoObject {
 
       case "object":
         parsedFieldInfo[k] = Array.isArray(v)
-          ? typeof v[0] === "object"
-            ? // 对象类型组成的数组
-              {
-                type: inferObjectTypeFromArray(k, v),
-                nested: true,
-                list: true,
-                objectList: true,
-                prop: k,
-                decoratorReturnType: null,
-              }
-            : {
-                type: arrayItemType(v),
-                nested: false,
-                list: true,
-                prop: k,
-                decoratorReturnType: `[${
-                  arrayItemType(v) === "number" ? "Int" : arrayItemType(v)
-                }]`,
-              }
-          : {
-              type: capitalCase(k),
-              nested: true,
+          ? {
+              // 原始类型组成的数组
+              type: arrayItemType(v) as any,
+              nested: false,
+              list: true,
               prop: k,
-              decoratorReturnType: capitalCase(k),
+              nullable: false,
+              fields: null,
+              decoratorReturnType: arrayItemType(v) === "number" ? "Int" : null,
+            }
+          : {
+              // 普通对象
+              type: capitalCase(k, {
+                delimiter: "",
+              }),
+              nested: true,
+              list: false,
+              prop: k,
+              nullable: false,
+              decoratorReturnType: capitalCase(k, {
+                delimiter: "",
+              }),
               fields: parser(content[k] as OriginObject),
             };
         break;
@@ -153,7 +158,9 @@ function inferObjectTypeFromArray<T extends PlainObject>(
 ) {
   const keys: string[][] = [];
   const processedArrayObjectKey: ObjectTypeRecord = {
-    abstractType: `${capitalCase(key)}`,
+    abstractType: `${capitalCase(key, {
+      delimiter: "",
+    })}`,
     contains: [],
   };
 
@@ -234,6 +241,7 @@ function generator(
       ],
       // scope: Scope.Public,
       trailingTrivia: (writer) => writer.newLine(),
+      // nullable 为 true 的字段需要加? ，且 @Field 中需要对应的加参数，西内，有点麻烦属实
       hasExclamationToken: true,
       hasQuestionToken: false,
       isReadonly: false,
