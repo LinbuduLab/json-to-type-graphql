@@ -1,5 +1,5 @@
 import jsonfile from "jsonfile";
-import { GraphQLScalarType } from "graphql";
+import { BREAK, GraphQLScalarType } from "graphql";
 import { capitalCase } from "capital-case";
 import { Int } from "type-graphql";
 import consola from "consola";
@@ -25,6 +25,7 @@ import got from "got";
 // TODO: 结合 ObjectType 的配置
 // TODO: ? 与 !
 // TODO: 配置
+// TODO: 在 formatter 里去掉没有使用到的装饰器
 // rootClassName
 // optional field
 // apply ! to all field
@@ -42,32 +43,26 @@ import got from "got";
 // public -> 为所有字段增加 public 关键词
 // suffix -> true "Type" string -> 这里就不capital了
 // forceNonNullable -> 在对象类型数组中，强制将所有键设置为!
+// 需要 () => String/Boolean 吗？
 // TODO: 能力支持
 // 支持仅 generator 或 仅 parser
 // 支持从 请求 生成(by got?)
-// prisma 支持? 以后再说呗
+// TypeORM / Prisma 支持? 以后再说呗
 
 const content = jsonfile.readFileSync("./sample.json");
 
-type PossibleFieldType =
-  | "string"
-  | "boolean"
-  | "number"
-  | "object"
-  | "array"
-  | "object_array"
-  | string
-  | PlainObject;
+type PossibleFieldType = ValidFieldType;
 
 type PlainObject = Record<string, unknown>;
 
-type OriginObject = Record<string, PossibleFieldType>;
+type OriginObject = Record<string, ValidFieldType>;
 
 type ProcessedFieldInfoObject = Record<string, ProcessedFieldInfo>;
 
 type ProcessedFieldInfo = {
   type: PossibleFieldType;
   nested: boolean;
+  propType: "string" | "number" | "boolean" | "object" | string;
   prop: string;
   list: boolean;
   nullable: boolean;
@@ -76,48 +71,81 @@ type ProcessedFieldInfo = {
   shared?: boolean;
 };
 
+enum ValidFieldType {
+  Null = "Null",
+  Undefined = "Undefined",
+  String = "String",
+  Number = "Number",
+  Boolean = "Boolean",
+  Object = "Object",
+  Primitive_Array = "Primitive_Array",
+  Object_Array = "Object_Array",
+  Empty_Array = "Empty_Array",
+  Ignore = "Ignore",
+}
+
+function strictTypeChecker(val: unknown): ValidFieldType {
+  if (val === null) return ValidFieldType.Null;
+  if (typeof val === "undefined") return ValidFieldType.Undefined;
+  if (typeof val === "string") return ValidFieldType.String;
+  if (typeof val === "number") return ValidFieldType.Number;
+  if (typeof val === "boolean") return ValidFieldType.Boolean;
+
+  if (Array.isArray(val)) {
+    if (!val.length) return ValidFieldType.Empty_Array;
+    return ["string", "number", "boolean"].includes(typeof val[0])
+      ? ValidFieldType.Primitive_Array
+      : ValidFieldType.Object_Array;
+  }
+
+  if (typeof val === "object") return ValidFieldType.Object;
+
+  return ValidFieldType.Ignore;
+}
+
+// 是不是可以直接返回数组形式
 function parser(
   content: OriginObject | OriginObject[]
 ): ProcessedFieldInfoObject {
   const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
-  if (Array.isArray(content)) {
-    const randomItem = content[0];
+  // if (Array.isArray(content)) {
+  //   const randomItem = content[0];
 
-    parsedFieldInfo["TMP"] =
-      typeof randomItem === "object"
-        ? {
-            type: "Data",
-            list: true,
-            decoratorReturnType: "Data",
-            nested: true,
-            nullable: false,
-            prop: "data",
-            fields: objectArrayParser(content),
-          }
-        : {
-            // 原始类型组成的数组
-            type: typeof randomItem,
-            nested: false,
-            list: true,
-            prop: "data",
-            nullable: false,
-            fields: null,
-            decoratorReturnType: typeof randomItem === "number" ? "Int" : null,
-          };
-    return parsedFieldInfo;
-  }
+  //   parsedFieldInfo["TMP"] =
+  //     typeof randomItem === "object"
+  //       ? {
+  //           type: "Data",
+  //           list: true,
+  //           decoratorReturnType: "Data",
+  //           nested: true,
+  //           nullable: false,
+  //           prop: "data",
+  //           fields: objectArrayParser(content),
+  //         }
+  //       : {
+  //           // 原始类型组成的数组
+  //           type: typeof randomItem,
+  //           nested: false,
+  //           list: true,
+  //           prop: "data",
+  //           nullable: false,
+  //           fields: null,
+  //           decoratorReturnType: typeof randomItem === "number" ? "Int" : null,
+  //         };
+  //   return parsedFieldInfo;
+  // }
 
   for (const [k, v] of Object.entries(content)) {
-    switch (typeof v) {
-      case "symbol":
-      case "undefined":
-        break;
+    const type = strictTypeChecker(v);
 
-      case "string":
-      case "boolean":
+    // TODO: 精确地判断不同类型
+    switch (type) {
+      case ValidFieldType.String:
+      case ValidFieldType.Boolean:
         parsedFieldInfo[k] = {
-          type: typeof v as "string" | "boolean" | "number",
+          type,
+          propType: typeof v,
           nested: false,
           prop: k,
           nullable: false,
@@ -128,9 +156,10 @@ function parser(
 
         break;
 
-      case "number":
+      case ValidFieldType.Number:
         parsedFieldInfo[k] = {
-          type: "number",
+          type,
+          propType: "number",
           nested: false,
           prop: k,
           nullable: false,
@@ -141,53 +170,113 @@ function parser(
 
         break;
 
+      case ValidFieldType.Empty_Array:
+        break;
+
+      case ValidFieldType.Primitive_Array:
+        parsedFieldInfo[k] = {
+          // 原始类型组成的数组
+          type,
+          propType: typeof v[0],
+          nested: false,
+          list: true,
+          prop: k,
+          nullable: false,
+          fields: null,
+          decoratorReturnType:
+            typeof (v as unknown as any[])[0] === "number" ? "Int" : null,
+        };
+        break;
+
+      case ValidFieldType.Object:
+        parsedFieldInfo[k] = {
+          // 普通对象
+          type,
+          propType: capitalCase(k, {
+            delimiter: "",
+          }),
+          nested: true,
+          list: false,
+          prop: k,
+          nullable: false,
+          decoratorReturnType: capitalCase(k, {
+            delimiter: "",
+          }),
+          fields: parser((content as any)[k]),
+        };
+
+        break;
+
+      case ValidFieldType.Object_Array:
+        parsedFieldInfo[k] = {
+          type,
+          list: true,
+          propType: capitalCase(k, {
+            delimiter: "",
+          }),
+          decoratorReturnType: capitalCase(k, {
+            delimiter: "",
+          }),
+          nested: true,
+          nullable: false,
+          prop: k,
+          fields: objectArrayParser(v as unknown as PlainObject[]),
+        };
+
       // use Object.toString.call instead
       // numberFieldHandler ...
       // 先处理原始类型数组吧
       // 对于数组：查看是否是同一类型，不是就直接跳掉
       // 对于同一类型 先拿到
 
-      case "object":
-        parsedFieldInfo[k] = Array.isArray(v)
-          ? typeof v[0] === "object"
-            ? {
-                type: capitalCase(k, {
-                  delimiter: "",
-                }),
-                list: true,
-                decoratorReturnType: capitalCase(k, {
-                  delimiter: "",
-                }),
-                nested: true,
-                nullable: false,
-                prop: k,
-                fields: objectArrayParser(v),
-              }
-            : {
-                // 原始类型组成的数组
-                type: arrayItemType(v) as any,
-                nested: false,
-                list: true,
-                prop: k,
-                nullable: false,
-                fields: null,
-                decoratorReturnType:
-                  arrayItemType(v) === "number" ? "Int" : null,
-              }
-          : {
-              // 普通对象
-              type: capitalCase(k, {
-                delimiter: "",
-              }),
-              nested: true,
-              list: false,
-              prop: k,
-              nullable: false,
-              decoratorReturnType: capitalCase(k, {
-                delimiter: "",
-              }),
-              fields: parser(content[k] as OriginObject),
-            };
+      // TODO: 对于空数组：生成一个空的Class
+
+      // case "object":
+      // parsedFieldInfo[k] = Array.isArray(v)
+      //   ? typeof v[0] === "object"
+      //     ? {
+      //         type: capitalCase(k, {
+      //           delimiter: "",
+      //         }),
+      //         list: true,
+      //         decoratorReturnType: capitalCase(k, {
+      //           delimiter: "",
+      //         }),
+      //         nested: true,
+      //         nullable: false,
+      //         prop: k,
+      //         fields: objectArrayParser(v),
+      //       }
+      //     : {
+      //         // 原始类型组成的数组
+      //         type: arrayItemType(v) as any,
+      //         nested: false,
+      //         list: true,
+      //         prop: k,
+      //         nullable: false,
+      //         fields: null,
+      //         decoratorReturnType:
+      //           arrayItemType(v) === "number" ? "Int" : null,
+      //       }
+      //   : {
+      //       // 普通对象
+      //       type: capitalCase(k, {
+      //         delimiter: "",
+      //       }),
+      //       nested: true,
+      //       list: false,
+      //       prop: k,
+      //       nullable: false,
+      //       decoratorReturnType: capitalCase(k, {
+      //         delimiter: "",
+      //       }),
+      //       fields: parser(content[k] as OriginObject),
+      //     };
+      // break;
+
+      case ValidFieldType.Null:
+      case ValidFieldType.Undefined:
+      case ValidFieldType.Ignore:
         break;
     }
   }
@@ -304,7 +393,7 @@ function generator(
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
   for (const [, v] of Object.entries(parsed)) {
-    if (v.nested) generator(v.fields!, v.type as string);
+    if (v.nested) generator(v.fields!, v.propType as string);
 
     // nullable 为 false 时 [Type]!
     // [Type!] 则由选项控制
@@ -319,7 +408,7 @@ function generator(
     // 用 reduce 可能更好
     properties.push({
       name: v.prop,
-      type: v.list ? `${v.type}[]` : (v.type as string),
+      type: v.list ? `${v.propType}[]` : (v.propType as string),
       decorators: [
         {
           name: "Field",
@@ -345,66 +434,23 @@ function generator(
   source.saveSync();
 }
 
-function objectArrayHandler(info: ObjectTypeRecord, classIdentifier: string) {
-  // 原 class 需要加上一个 field 指向这个对象类型
-  // 为这个field新建一个对象类型
-  const classDecorator: OptionalKind<DecoratorStructure>[] = [
-    {
-      name: "ObjectType",
-      arguments: [],
-    },
-  ];
-  const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
-
-  for (const fields of info.contains) {
-    properties.push({
-      name: fields.key,
-      type: fields.type as string,
-      decorators: [
-        {
-          name: "Field",
-          arguments: [],
-        },
-      ],
-      // scope: Scope.Public,
-      trailingTrivia: (writer) => writer.newLine(),
-      hasExclamationToken: true,
-      hasQuestionToken: false,
-      isReadonly: false,
-    });
-  }
-
-  source.addClass({
-    name: info.abstractType,
-    decorators: classDecorator,
-    properties,
-    isExported: true,
-  });
-}
-
-// 看起来需要一个专门处理 Record[] 类型的 generator？
-
 function formatter() {}
 
-// 啊这，对于上来就是数组的要咋处理呢
+// (async () => {
+//   const res = await got(
+//     "https://baas-all-demo.pre-fc.alibaba-inc.com/summary?ids=594572481181"
+//   );
 
-// TODO: 处理这种数组形式
-
-(async () => {
-  const res = await got(
-    "https://baas-all-demo.pre-fc.alibaba-inc.com/summary?ids=594572481181"
-  );
-
-  // console.log(res.body);
-  // parser(JSON.parse(res.body));
-  // generator(parser(JSON.parse(res.body)[0]));
-  generator(parser(JSON.parse(res.body)));
-  // consola.log(
-  //   util.inspect(parser(JSON.parse(res.body)), {
-  //     depth: 999,
-  //   })
-  // );
-})();
+//   // console.log(res.body);
+//   // parser(JSON.parse(res.body));
+//   // generator(parser(JSON.parse(res.body)[0]));
+//   // generator(parser(JSON.parse(res.body)));
+//   // consola.log(
+//   //   util.inspect(parser(JSON.parse(res.body)), {
+//   //     depth: 999,
+//   //   })
+//   // );
+// })();
 
 // consola.log(
 //   util.inspect(parser(content), {
@@ -412,5 +458,4 @@ function formatter() {}
 //   })
 // );
 
-// generator(parser(content));
-//
+generator(parser(content));
