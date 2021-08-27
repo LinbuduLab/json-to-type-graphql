@@ -81,7 +81,7 @@ type FormatterOptions = {
 };
 
 type Options = {
-  parser: ParserOptions;
+  parser?: Partial<ParserOptions>;
   generator: GeneratorOptions;
   formatter: FormatterOptions;
 };
@@ -134,8 +134,10 @@ function strictTypeChecker(val: unknown): ValidFieldType {
 
 // 是不是可以直接返回数组形式
 function parser(
-  content: SourceObject | SourceObject[] | ValidPrimitive[]
+  content: SourceObject | SourceObject[] | ValidPrimitive[],
+  options?: Options["parser"]
 ): ProcessedFieldInfoObject {
+  const { forceNonNullable = false, forceReturnType = false } = options ?? {};
   const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
   if (Array.isArray(content)) {
@@ -171,6 +173,7 @@ function parser(
 
   for (const [k, v] of Object.entries(content)) {
     const type = strictTypeChecker(v);
+    console.log(k, v, type);
     // avoid "nestedType" -> "Nested Type"
     const capitalCasedKey = capitalCase(k, {
       delimiter: "",
@@ -187,7 +190,7 @@ function parser(
           nullable: false,
           list: false,
           fields: null,
-          decoratorReturnType: null,
+          decoratorReturnType: forceReturnType ? type : null,
         };
 
         break;
@@ -215,7 +218,7 @@ function parser(
           prop: k,
           nullable: false,
           decoratorReturnType: capitalCasedKey,
-          fields: parser(v),
+          fields: parser(v, { forceNonNullable, forceReturnType }),
         };
 
         break;
@@ -243,7 +246,12 @@ function parser(
           prop: k,
           nullable: false,
           fields: null,
-          decoratorReturnType: typeof v[0] === "number" ? "Int" : null,
+          decoratorReturnType:
+            typeof v[0] === "number"
+              ? "Int"
+              : forceReturnType
+              ? strictTypeChecker(v[0])
+              : null,
         };
         break;
 
@@ -256,7 +264,7 @@ function parser(
           nested: true,
           nullable: false,
           prop: k,
-          fields: objectArrayParser(v),
+          fields: objectArrayParser(v, { forceNonNullable, forceReturnType }),
         };
 
       case ValidFieldType.Null:
@@ -270,10 +278,13 @@ function parser(
 }
 
 function objectArrayParser<T extends PlainObject>(
-  arr: T[]
+  arr: T[],
+  options?: ParserOptions
 ): ProcessedFieldInfoObject {
   const keys: string[][] = [];
   const processedKeys: ProcessedFieldInfo[] = [];
+
+  const { forceNonNullable = false, forceReturnType = false } = options ?? {};
 
   const processedResult: ProcessedFieldInfoObject = {};
 
@@ -304,7 +315,10 @@ function objectArrayParser<T extends PlainObject>(
     // console.log(parser(nonNullSharedItem[0] as SourceObject));
 
     processedKeys.push({
-      ...parser(nonNullSharedItem[0] as SourceObject)[key],
+      ...parser(nonNullSharedItem[0] as SourceObject, {
+        forceNonNullable,
+        forceReturnType,
+      })[key],
       shared: true,
       nullable: false,
     });
@@ -322,9 +336,12 @@ function objectArrayParser<T extends PlainObject>(
   for (const item of arr) {
     for (const [k, v] of Object.entries(item)) {
       processedKeys.push({
-        ...parser({ [k]: v } as SourceObject)[k],
+        ...parser({ [k]: v } as SourceObject, {
+          forceNonNullable,
+          forceReturnType,
+        })[k],
         shared: false,
-        nullable: true,
+        nullable: !forceNonNullable,
       });
     }
   }
@@ -426,4 +443,4 @@ function formatter() {}
 //   })
 // );
 
-generator(parser(content));
+generator(parser(content, { forceNonNullable: true, forceReturnType: false }));
