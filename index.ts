@@ -73,7 +73,6 @@ type GeneratorOptions = {
   suffix: boolean | string;
   publicProps: string[];
   readonlyProps: string[];
-  optionalProps: string[];
 };
 
 type FormatterOptions = {
@@ -82,11 +81,11 @@ type FormatterOptions = {
 
 type Options = {
   parser?: Partial<ParserOptions>;
-  generator: GeneratorOptions;
+  generator?: Partial<GeneratorOptions>;
   formatter: FormatterOptions;
 };
 
-type ProcessedFieldInfo = {
+type ParsedFieldInfo = {
   type: ValidFieldType;
   nested: boolean;
   prop: string;
@@ -98,7 +97,7 @@ type ProcessedFieldInfo = {
   shared?: boolean;
 };
 
-type ProcessedFieldInfoObject = Record<string, ProcessedFieldInfo>;
+type ProcessedFieldInfoObject = Record<string, ParsedFieldInfo>;
 
 const enum ValidFieldType {
   Null = "Null",
@@ -173,7 +172,6 @@ function parser(
 
   for (const [k, v] of Object.entries(content)) {
     const type = strictTypeChecker(v);
-    console.log(k, v, type);
     // avoid "nestedType" -> "Nested Type"
     const capitalCasedKey = capitalCase(k, {
       delimiter: "",
@@ -282,7 +280,7 @@ function objectArrayParser<T extends PlainObject>(
   options?: ParserOptions
 ): ProcessedFieldInfoObject {
   const keys: string[][] = [];
-  const processedKeys: ProcessedFieldInfo[] = [];
+  const parsedKeys: ParsedFieldInfo[] = [];
 
   const { forceNonNullable = false, forceReturnType = false } = options ?? {};
 
@@ -292,11 +290,10 @@ function objectArrayParser<T extends PlainObject>(
     keys.push(Object.keys(item));
   }
 
-  // 在所有成员中都存在
+  // 在所有成员中都存在的键
   const intersectionKeys = intersection(...keys);
 
-  // 但不一定所有成员中都有值 所以要再次遍历找到一个值为真的
-
+  // 但不一定所有成员中都有值 所以要再次遍历找到一个值一定为真的 使用这个真值作为类型
   intersectionKeys.forEach((key) => {
     // 要考虑 0 "" 这种
     const nonNullSharedItem = arr.filter(
@@ -309,12 +306,9 @@ function objectArrayParser<T extends PlainObject>(
       ? typeof nonNullSharedItem[0][key]
       : "object";
 
-    // 这个选出来的值应该直接交给 parser 处理
-    // 只是把最后的 shared 附加上去？
+    // 这个选出来的值直接交给 parser 处理
 
-    // console.log(parser(nonNullSharedItem[0] as SourceObject));
-
-    processedKeys.push({
+    parsedKeys.push({
       ...parser(nonNullSharedItem[0] as SourceObject, {
         forceNonNullable,
         forceReturnType,
@@ -335,7 +329,7 @@ function objectArrayParser<T extends PlainObject>(
 
   for (const item of arr) {
     for (const [k, v] of Object.entries(item)) {
-      processedKeys.push({
+      parsedKeys.push({
         ...parser({ [k]: v } as SourceObject, {
           forceNonNullable,
           forceReturnType,
@@ -346,7 +340,7 @@ function objectArrayParser<T extends PlainObject>(
     }
   }
 
-  const result = uniqBy(processedKeys, (key) => key.prop);
+  const result = uniqBy(parsedKeys, (key) => key.prop);
 
   result.forEach((item) => {
     processedResult[item.prop] = item;
@@ -368,8 +362,15 @@ addImportDeclaration(
 
 function generator(
   parsed: ProcessedFieldInfoObject,
-  className = "__TMP_CLASS_NAME__"
+  options?: Options["generator"]
 ): void {
+  const {
+    entryClassName = "__TMP_CLASS_NAME__",
+    publicProps = [],
+    readonlyProps = [],
+    suffix = false,
+  } = options ?? {};
+
   const classDecorator: OptionalKind<DecoratorStructure>[] = [
     {
       name: "ObjectType",
@@ -378,9 +379,14 @@ function generator(
   ];
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
-  // FIXME: 我只要值，那为啥不直接处理成数组形式
   for (const [, v] of Object.entries(parsed)) {
-    if (v.nested) generator(v.fields!, v.propType as string);
+    if (v.nested)
+      generator(v.fields!, {
+        entryClassName: v.propType,
+        publicProps,
+        readonlyProps,
+        suffix,
+      });
 
     // nullable 为 false 时 [Type]!
     // [Type!] 则由选项控制
@@ -401,16 +407,19 @@ function generator(
           arguments: fieldReturnType,
         },
       ],
-      // scope: Scope.Public,
+      scope: publicProps.includes(v.prop) ? Scope.Public : undefined,
       trailingTrivia: (writer) => writer.newLine(),
       hasExclamationToken: !v.nullable,
       hasQuestionToken: v.nullable,
-      isReadonly: false,
+      isReadonly: readonlyProps.includes(v.prop),
     });
   }
 
   source.addClass({
-    name: className,
+    name:
+      entryClassName === "__TMP_CLASS_NAME__"
+        ? "__TMP_CLASS_NAME__"
+        : capitalCase(`${entryClassName}`, { delimiter: "" }),
     decorators: classDecorator,
     properties,
     isExported: true,
@@ -443,4 +452,10 @@ function formatter() {}
 //   })
 // );
 
-generator(parser(content, { forceNonNullable: true, forceReturnType: false }));
+generator(
+  parser(content, { forceNonNullable: false, forceReturnType: false }),
+  {
+    entryClassName: "root",
+    publicProps: ["success"],
+  }
+);

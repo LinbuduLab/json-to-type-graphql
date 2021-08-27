@@ -17,6 +17,10 @@ export class EmptyArrayField {
 }
 
 @ObjectType()
+export class Ff {
+}
+
+@ObjectType()
 export class Fec {
     @Field((type) => Int)
     feca!: number;
@@ -42,26 +46,29 @@ export class Fe {
 
 @ObjectType()
 export class F {
-    @Field((type) => Int)
-    fa!: number;
+    @Field((type) => Int, { nullable: true })
+    fa?: number;
 
-    @Field((type) => Int)
-    fb!: number;
+    @Field((type) => Int, { nullable: true })
+    fb?: number;
 
-    @Field((type) => Int)
-    fc!: number;
+    @Field((type) => Int, { nullable: true })
+    fc?: number;
 
-    @Field((type) => [Int])
-    fd!: number[];
+    @Field((type) => [Int], { nullable: true })
+    fd?: number[];
 
-    @Field((type) => Fe)
-    fe!: Fe;
+    @Field((type) => [Ff], { nullable: true })
+    ff?: Ff[];
+
+    @Field((type) => Fe, { nullable: true })
+    fe?: Fe;
 }
 
 @ObjectType()
-export class __TMP_CLASS_NAME__ {
+export class Root {
     @Field()
-    success!: boolean;
+    public success!: boolean;
 
     @Field((type) => Int)
     status!: number;
