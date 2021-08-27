@@ -13,6 +13,10 @@ export class Nested {
 }
 
 @ObjectType()
+export class EmptyArrayField {
+}
+
+@ObjectType()
 export class Fec {
     @Field((type) => Int)
     feca!: number;
@@ -67,6 +71,9 @@ export class __TMP_CLASS_NAME__ {
 
     @Field((type) => [Int])
     arrayField!: number[];
+
+    @Field((type) => [EmptyArrayField])
+    emptyArrayField!: EmptyArrayField[];
 
     @Field((type) => [F])
     f!: F[];
