@@ -1,6 +1,12 @@
 import { ObjectType, Field, Int, ID } from "type-graphql";
 
 @ObjectType()
+export class ArrayField {
+  @Field()
+  a!: string;
+}
+
+@ObjectType()
 export class Nested {
   @Field()
   name!: string;
@@ -8,8 +14,8 @@ export class Nested {
   @Field((type) => Int)
   age!: number;
 
-  @Field((type) => [Int])
-  arrayField!: number[];
+  @Field((type) => [ArrayField])
+  arrayField!: ArrayField[];
 }
 
 @ObjectType()

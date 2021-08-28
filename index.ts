@@ -4,5 +4,14 @@ import transformer from "./src";
 const outputPath = path.join(__dirname, "./testing.ts");
 
 const content = jsonfile.readFileSync("./sample.json");
+// const content = jsonfile.readFileSync("./array-entry.json");
 
-transformer(content, outputPath, {});
+transformer(content, outputPath, {
+  parser: {
+    // forceNonNullable: true,
+    // forceReturnType: true,
+  },
+  preprocesser: {
+    preserveObjectOnlyInArray: true,
+  },
+});

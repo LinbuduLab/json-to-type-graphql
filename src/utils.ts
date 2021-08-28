@@ -16,6 +16,7 @@ export type ValidPrimitiveType = "string" | "number" | "boolean";
 export type ParserOptions = {
   forceNonNullable: boolean;
   forceReturnType: boolean;
+  arrayEntryProp: string;
 };
 
 export type GeneratorOptions = {
@@ -29,10 +30,15 @@ export type FormatterOptions = {
   disable: boolean;
 } & PrettierOptions;
 
+export type PreprocesserOptions = {
+  preserveObjectOnlyInArray?: boolean;
+};
+
 export type Options = {
+  preprocesser?: Partial<PreprocesserOptions>;
   parser?: Partial<ParserOptions>;
   generator?: Partial<GeneratorOptions>;
-  formatter?: FormatterOptions;
+  formatter?: Partial<FormatterOptions>;
 };
 
 export type ParsedFieldInfo = {

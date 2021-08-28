@@ -7,3 +7,7 @@
 - 优化 objectArrayParser
 - 支持 parser 和 generator 的选项
 - 支持 hook ？
+- 支持 数组 嵌套 数组，理论上这种会被归到 Object_Array
+- AST findExistClass
+- 修正类型
+- 生成顺序

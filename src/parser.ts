@@ -1,15 +1,9 @@
 import intersection from "lodash/intersection";
 import uniqBy from "lodash/uniqBy";
 
-import {
-  strictTypeChecker,
-  ARRAY_ENTRY_STRUCTURE_PROP,
-  capitalCase,
-  ValidFieldType,
-} from "./utils";
+import { strictTypeChecker, capitalCase, ValidFieldType } from "./utils";
 import type {
   SourceObject,
-  Options,
   ValidPrimitiveType,
   ProcessedFieldInfoObject,
   ParsedFieldInfo,
@@ -19,41 +13,91 @@ import type {
 
 export function parser(
   content: SourceObject | SourceObject[] | ValidPrimitiveType[],
-  options?: Options["parser"]
+  options: Required<ParserOptions>
 ): ProcessedFieldInfoObject {
-  const { forceNonNullable = false, forceReturnType = false } = options ?? {};
+  return Array.isArray(content)
+    ? arrayEntryParser(content, options)
+    : objectEntryParser(content, options);
+}
+
+export function arrayEntryParser(
+  content: SourceObject[] | ValidPrimitiveType[],
+  options: ParserOptions
+): ProcessedFieldInfoObject {
+  const { forceNonNullable, forceReturnType, arrayEntryProp } = options;
   const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
-  if (Array.isArray(content)) {
-    if (!content.length) return {};
+  if (!content.length) return {};
 
-    const randomItem = content[0];
+  const randomItem = content[0];
+  const type = strictTypeChecker(randomItem);
 
-    parsedFieldInfo["TMP"] =
-      typeof randomItem === "object"
-        ? {
-            type: ValidFieldType.Object_Array,
-            propType: capitalCase(ARRAY_ENTRY_STRUCTURE_PROP),
-            nested: true,
-            list: true,
-            prop: ARRAY_ENTRY_STRUCTURE_PROP,
-            nullable: false,
-            fields: objectArrayParser(content as SourceObject[]),
-            decoratorReturnType: capitalCase("Data"),
-          }
-        : {
-            type: ValidFieldType.Primitive_Array,
-            propType: typeof randomItem,
-            nested: false,
-            list: true,
-            prop: ARRAY_ENTRY_STRUCTURE_PROP,
-            nullable: false,
-            fields: null,
-            decoratorReturnType: typeof randomItem === "number" ? "Int" : null,
-          };
+  switch (type) {
+    case ValidFieldType.String:
+    case ValidFieldType.Boolean:
+    case ValidFieldType.Number:
+      parsedFieldInfo["TMP"] = {
+        type: ValidFieldType.Primitive_Array,
+        propType: typeof randomItem,
+        nested: false,
+        list: true,
+        prop: arrayEntryProp,
+        nullable: false,
+        fields: null,
+        decoratorReturnType:
+          typeof randomItem === "number"
+            ? "Int"
+            : forceReturnType
+            ? strictTypeChecker(randomItem)
+            : null,
+      };
 
-    return parsedFieldInfo;
+      break;
+
+    case ValidFieldType.Object:
+      parsedFieldInfo["TMP"] = {
+        type: ValidFieldType.Object_Array,
+        propType: capitalCase(arrayEntryProp),
+        nested: true,
+        list: true,
+        prop: arrayEntryProp,
+        nullable: false,
+        fields: objectArrayParser(content as SourceObject[], options),
+        decoratorReturnType: capitalCase(arrayEntryProp),
+      };
+
+      break;
+
+    case ValidFieldType.Empty_Array:
+      parsedFieldInfo["TMP"] = {
+        type,
+        list: true,
+        propType: capitalCase(arrayEntryProp),
+        decoratorReturnType: capitalCase(arrayEntryProp),
+        nested: true,
+        nullable: false,
+        prop: arrayEntryProp,
+        fields: {},
+      };
+      break;
+
+    case ValidFieldType.Primitive_Array:
+    case ValidFieldType.Object_Array:
+    case ValidFieldType.Null:
+    case ValidFieldType.Undefined:
+    case ValidFieldType.Ignore:
+      break;
   }
+
+  return parsedFieldInfo;
+}
+
+export function objectEntryParser(
+  content: SourceObject | SourceObject[] | ValidPrimitiveType[],
+  options: ParserOptions
+): ProcessedFieldInfoObject {
+  const { forceNonNullable, forceReturnType } = options;
+  const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
   for (const [k, v] of Object.entries(content)) {
     const type = strictTypeChecker(v);
@@ -98,10 +142,7 @@ export function parser(
           prop: k,
           nullable: false,
           decoratorReturnType: capitalCasedKey,
-          fields: parser(v as unknown as SourceObject, {
-            forceNonNullable,
-            forceReturnType,
-          }),
+          fields: parser(v as unknown as SourceObject, options),
         };
 
         break;
@@ -146,11 +187,9 @@ export function parser(
           nested: true,
           nullable: false,
           prop: k,
-          fields: objectArrayParser(v as unknown as PlainObject[], {
-            forceNonNullable,
-            forceReturnType,
-          }),
+          fields: objectArrayParser(v as unknown as PlainObject[], options),
         };
+        break;
 
       case ValidFieldType.Null:
       case ValidFieldType.Undefined:
@@ -162,9 +201,11 @@ export function parser(
   return parsedFieldInfo;
 }
 
+// handle [[],[]]
+//
 export function objectArrayParser<T extends PlainObject>(
   arr: T[],
-  options?: ParserOptions
+  options: ParserOptions
 ): ProcessedFieldInfoObject {
   const keys: string[][] = [];
   const parsedKeys: ParsedFieldInfo[] = [];
@@ -185,10 +226,7 @@ export function objectArrayParser<T extends PlainObject>(
     );
 
     parsedKeys.push({
-      ...parser(nonNullSharedItem[0] as SourceObject, {
-        forceNonNullable,
-        forceReturnType,
-      })[key],
+      ...parser(nonNullSharedItem[0] as SourceObject, options)[key],
       shared: true,
       nullable: false,
     });
@@ -203,10 +241,7 @@ export function objectArrayParser<T extends PlainObject>(
   for (const item of arr) {
     for (const [k, v] of Object.entries(item)) {
       parsedKeys.push({
-        ...parser({ [k]: v } as SourceObject, {
-          forceNonNullable,
-          forceReturnType,
-        })[k],
+        ...parser({ [k]: v } as SourceObject, options)[k],
         shared: false,
         nullable: !forceNonNullable,
       });
