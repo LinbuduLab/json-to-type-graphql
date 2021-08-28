@@ -1,12 +1,10 @@
-import { ImportDeclaration, SourceFile, SyntaxKind } from "ts-morph";
+import { SourceFile } from "ts-morph";
+import { ensureArray } from "./utils";
 
 export enum ImportType {
   NAMESPACE_IMPORT = "NAMESPACE_IMPORT",
   NAMED_IMPORTS = "NAMED_IMPORTS",
   DEFAULT_IMPORT = "DEFAULT_IMPORT",
-}
-export function ensureArray<T>(maybeArray: T | T[]): T[] {
-  return Array.isArray(maybeArray) ? maybeArray : [maybeArray];
 }
 
 export function addImportDeclaration(

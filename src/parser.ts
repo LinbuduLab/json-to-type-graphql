@@ -1,13 +1,17 @@
-import { capitalCase } from "capital-case";
 import intersection from "lodash/intersection";
 import uniqBy from "lodash/uniqBy";
+
 import {
+  strictTypeChecker,
+  ARRAY_ENTRY_STRUCTURE_PROP,
+  capitalCase,
+  ValidFieldType,
+} from "./utils";
+import type {
   SourceObject,
   Options,
   ValidPrimitiveType,
   ProcessedFieldInfoObject,
-  strictTypeChecker,
-  ValidFieldType,
   ParsedFieldInfo,
   ParserOptions,
   PlainObject,
@@ -29,20 +33,20 @@ export function parser(
       typeof randomItem === "object"
         ? {
             type: ValidFieldType.Object_Array,
-            propType: "Data",
+            propType: capitalCase(ARRAY_ENTRY_STRUCTURE_PROP),
             nested: true,
             list: true,
-            prop: "data",
+            prop: ARRAY_ENTRY_STRUCTURE_PROP,
             nullable: false,
             fields: objectArrayParser(content as SourceObject[]),
-            decoratorReturnType: "Data",
+            decoratorReturnType: capitalCase("Data"),
           }
         : {
             type: ValidFieldType.Primitive_Array,
             propType: typeof randomItem,
             nested: false,
             list: true,
-            prop: "data",
+            prop: ARRAY_ENTRY_STRUCTURE_PROP,
             nullable: false,
             fields: null,
             decoratorReturnType: typeof randomItem === "number" ? "Int" : null,
@@ -53,10 +57,7 @@ export function parser(
 
   for (const [k, v] of Object.entries(content)) {
     const type = strictTypeChecker(v);
-    // avoid "nestedType" -> "Nested Type"
-    const capitalCasedKey = capitalCase(k, {
-      delimiter: "",
-    });
+    const capitalCasedKey = capitalCase(k);
 
     switch (type) {
       case ValidFieldType.String:

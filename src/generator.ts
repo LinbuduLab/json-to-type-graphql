@@ -1,16 +1,17 @@
-import { capitalCase } from "capital-case";
-import {
-  OptionalKind,
+import { Scope, Project } from "ts-morph";
+import type {
+  SourceFile,
   DecoratorStructure,
   PropertyDeclarationStructure,
-  Scope,
-  Project,
-  SourceFile,
+  OptionalKind,
 } from "ts-morph";
-import { ProcessedFieldInfoObject, Options } from "./utils";
+
+import { capitalCase } from "./utils";
+import type { ProcessedFieldInfoObject, Options } from "./utils";
+
 import { addImportDeclaration, ImportType } from "./ast";
 
-export function generatorWrapper(
+export function generator(
   outputPath: string,
   parsed: ProcessedFieldInfoObject,
   options?: Options["generator"]
@@ -21,13 +22,14 @@ export function generatorWrapper(
     source,
     ["ObjectType", "Field", "Int", "ID"],
     "type-graphql",
-    ImportType.NAMED_IMPORTS
+    ImportType.NAMED_IMPORTS,
+    false
   );
 
-  generator(source, parsed, options);
+  classDeclarationGenerator(source, parsed, options);
 }
 
-export function generator(
+export function classDeclarationGenerator(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
   options?: Options["generator"]
@@ -49,7 +51,7 @@ export function generator(
 
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested)
-      generator(source, v.fields!, {
+      classDeclarationGenerator(source, v.fields!, {
         entryClassName: v.propType,
         publicProps,
         readonlyProps,
@@ -87,7 +89,7 @@ export function generator(
     name:
       entryClassName === "__TMP_CLASS_NAME__"
         ? "__TMP_CLASS_NAME__"
-        : capitalCase(`${entryClassName}`, { delimiter: "" }),
+        : capitalCase(`${entryClassName}`),
     decorators: classDecorator,
     properties,
     isExported: true,

@@ -1,10 +1,9 @@
-# JSON2TypeGraphQLClass
+# TODO
 
-Generate TypeGraphQL Class From JSON!
-
-感觉要重新梳理下？
-
-- parser：根据不同的 field 类型提供不同的 parser
-- generator：同样的，提供不同类型的 generator
-- 先把所有的 field 都 parse 完毕，再递归的去 调用 generator 生成结构
-- 需要传入 parentClass
+- AST 看起来只需要 add named import？但留着可以提高逼格
+- 新增 直接更新 导入成员的 ast 方法
+- formatter 还能做什么？
+- data Data -> constant
+- 优化 objectArrayParser
+- 支持 parser 和 generator 的选项
+- 支持 hook ？

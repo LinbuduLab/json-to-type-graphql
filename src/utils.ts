@@ -1,4 +1,11 @@
 import { Options as PrettierOptions } from "prettier";
+import { capitalCase as originalCapitalCase } from "capital-case";
+
+// avoid "nestedType" -> "Nested Type"
+export const capitalCase: typeof originalCapitalCase = (str) =>
+  originalCapitalCase(str, { delimiter: "" });
+
+export const ARRAY_ENTRY_STRUCTURE_PROP = "data";
 
 export type PlainObject = Record<string, unknown>;
 
@@ -53,6 +60,10 @@ export const enum ValidFieldType {
   Object_Array = "Object_Array",
   Empty_Array = "Empty_Array",
   Ignore = "Ignore",
+}
+
+export function ensureArray<T>(maybeArray: T | T[]): T[] {
+  return Array.isArray(maybeArray) ? maybeArray : [maybeArray];
 }
 
 export function strictTypeChecker(val: unknown): ValidFieldType {

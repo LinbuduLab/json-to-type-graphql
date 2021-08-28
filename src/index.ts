@@ -1,8 +1,10 @@
 import fs from "fs-extra";
+
 import { parser } from "./parser";
-import { generatorWrapper } from "./generator";
+import { generator } from "./generator";
 import { formatter } from "./formatter";
-import { Options, SourceObject, ValidPrimitiveType } from "./utils";
+
+import type { Options, SourceObject, ValidPrimitiveType } from "./utils";
 
 export default function transformer(
   content: SourceObject | SourceObject[] | ValidPrimitiveType[],
@@ -12,11 +14,7 @@ export default function transformer(
   fs.rmSync(outputPath);
   fs.createFileSync(outputPath);
 
-  generatorWrapper(
-    outputPath,
-    parser(content, options?.parser),
-    options?.generator
-  );
+  generator(outputPath, parser(content, options?.parser), options?.generator);
 
   formatter(outputPath, options?.formatter);
 }
