@@ -7,8 +7,10 @@ import {
   PreprocesserOptions,
 } from "./utils";
 
-// 对于既拥有原始类型和对象类型的数组 递归的移除其中的原始类型
-// 对于对象类型
+/**
+ * 对于既拥有原始类型和对象类型的数组 递归的移除其中的原始类型
+ * 对于对象类型
+ */
 
 export function preprocesser(
   raw: SourceObject | SourceObject[],
@@ -22,7 +24,10 @@ export function preprocesser(
 
   for (const [k, v] of Object.entries(raw)) {
     if (Array.isArray(v)) {
-      raw[k] = preprocesser(v, options) as unknown as "object";
+      v.length && Array.isArray(v[0])
+        ? // delete nested array directly at first
+          delete raw[k]
+        : (raw[k] = preprocesser(v, options) as unknown as "object");
     }
 
     if (strictTypeChecker(v) === ValidFieldType.Object) {
