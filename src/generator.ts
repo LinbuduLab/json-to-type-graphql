@@ -15,8 +15,9 @@ import {
   checkExistClassDeclarations,
   ImportType,
   setNamedImportsMember,
-  ClassGeneratorRecordList,
+  ClassGeneratorRecord,
   classDeclarationGenerator,
+  classDeclarationGeneratorWrapper,
 } from "./ast";
 
 export function generator(
@@ -25,7 +26,7 @@ export function generator(
   options?: Options["generator"]
 ) {
   const source = new Project().addSourceFileAtPath(outputPath);
-  const classList: ClassGeneratorRecordList = [];
+  const classGeneratorRecord: ClassGeneratorRecord = {};
 
   addImportDeclaration(
     source,
@@ -35,15 +36,26 @@ export function generator(
     false
   );
 
-  classDecInfoCollector(source, parsed, classList, options);
+  classDecInfoCollector(
+    source,
+    parsed,
+    classGeneratorRecord,
+    undefined,
+    options
+  );
 
-  classDeclarationGenerator(source, classList, true);
+  // classDeclarationGenerator(source, classGeneratorRecord, true);
+
+  const tmp = reverseRelation(classGeneratorRecord);
+
+  classDeclarationGeneratorWrapper(source, tmp);
 }
 
 export function classDecInfoCollector(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
-  list: ClassGeneratorRecordList,
+  list: ClassGeneratorRecord,
+  parent?: string,
   options?: Options["generator"]
 ): void {
   const {
@@ -63,7 +75,7 @@ export function classDecInfoCollector(
 
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested)
-      classDecInfoCollector(source, v.fields!, list, {
+      classDecInfoCollector(source, v.fields!, list, entryClassName, {
         entryClassName: v.propType,
         publicProps,
         readonlyProps,
@@ -97,15 +109,37 @@ export function classDecInfoCollector(
     });
   }
 
-  list.push({
-    name:
-      entryClassName === "__TMP_CLASS_NAME__"
-        ? "__TMP_CLASS_NAME__"
-        : capitalCase(`${entryClassName}`),
-    decorators: classDecorator,
-    properties,
-    isExported: true,
-  });
+  const record = {
+    info: {
+      name:
+        entryClassName === "__TMP_CLASS_NAME__"
+          ? "__TMP_CLASS_NAME__"
+          : capitalCase(`${entryClassName}`),
+      decorators: classDecorator,
+      properties,
+      isExported: true,
+    },
+    parent: parent ?? null,
+    children: [],
+  };
+
+  list[entryClassName] = record;
 
   source.saveSync();
+}
+
+export function reverseRelation(raw: ClassGeneratorRecord) {
+  const reversed: ClassGeneratorRecord = {};
+
+  for (const [k, v] of Object.entries(raw)) {
+    reversed[k] = v;
+  }
+
+  for (const [k, v] of Object.entries(raw)) {
+    if (v.parent) {
+      reversed[v.parent]["children"].push(k);
+    }
+  }
+
+  return reversed;
 }

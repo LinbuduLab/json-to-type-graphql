@@ -14,7 +14,6 @@ import {
 
 export function preprocesser(
   raw: SourceObject | SourceObject[],
-
   options: PreprocesserOptions
 ): SourceObject | SourceObject[] {
   const { preserveObjectOnlyInArray } = options;

@@ -1,17 +1,68 @@
 import { ClassDeclarationStructure, OptionalKind, SourceFile } from "ts-morph";
 import { ensureArray } from "./utils";
 
-export type ClassGeneratorRecordList =
-  OptionalKind<ClassDeclarationStructure>[];
+// TODO: infer Record value type
+export type ClassGeneratorRecord = Record<
+  string,
+  {
+    info: OptionalKind<ClassDeclarationStructure>;
+    parent: string | null;
+    children: string[];
+    generated?: boolean;
+  }
+>;
+
+export function reverseObjectKeys(
+  object: ClassGeneratorRecord
+): ClassGeneratorRecord {
+  const result: ClassGeneratorRecord = {};
+  for (const key of Object.keys(object).reverse()) {
+    result[key] = object[key];
+  }
+
+  return result;
+}
+
+let xx: ClassGeneratorRecord = {};
+
+export function classDeclarationGeneratorWrapper(
+  source: SourceFile,
+  record: ClassGeneratorRecord
+) {
+  const tmp = reverseObjectKeys(record);
+  xx = tmp;
+
+  classDeclarationGenerator(source, tmp);
+}
 
 export function classDeclarationGenerator(
   source: SourceFile,
-  record: ClassGeneratorRecordList,
+  record: ClassGeneratorRecord,
   apply?: boolean
 ): void {
-  record.reverse().forEach((classStru) => source.addClass(classStru));
+  // console.log(reverseObjectKeys(record));
 
-  apply && source.saveSync();
+  // 理想的顺序
+  // 如果存在 children，首先生成这一项
+  // 将 children 对应
+  // 键值对取出 递归进行处理？
+
+  for (const [k, v] of Object.entries(record)) {
+    console.log("k, v: ", k, v);
+    !v?.generated && source.addClass(v.info);
+    v.generated = true;
+    if (v.children.length) {
+      for (const child of v.children) {
+        classDeclarationGenerator(source, {
+          [child]: xx[child],
+        });
+      }
+    }
+  }
+
+  // record.reverse().forEach((classStru) => source.addClass(classStru));
+
+  source.saveSync();
 }
 
 export function checkExistClassDeclarations(source: SourceFile): string[] {

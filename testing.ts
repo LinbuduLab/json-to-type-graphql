@@ -28,52 +28,13 @@ export class __TMP_CLASS_NAME__ {
 }
 
 @ObjectType()
-export class F {
-  @Field((type) => Int, { nullable: true })
-  fa?: number;
-
-  @Field((type) => Int, { nullable: true })
-  fb?: number;
-
-  @Field((type) => Int, { nullable: true })
-  fc?: number;
-
-  @Field((type) => [Int], { nullable: true })
-  fd?: number[];
-
-  @Field((type) => [Ff], { nullable: true })
-  ff?: Ff[];
-
-  @Field((type) => Fe, { nullable: true })
-  fe?: Fe;
-}
-
-@ObjectType()
-export class Fe {
-  @Field((type) => Int)
-  fea!: number;
-
-  @Field((type) => [Int])
-  feb!: number[];
-
-  @Field((type) => [Fec])
-  fec!: Fec[];
-}
-
-@ObjectType()
-export class Fec {
-  @Field((type) => Int)
-  feca!: number;
-
+export class MixedField {
   @Field()
-  fecb!: boolean;
-
-  @Field()
-  fecc!: string[];
+  a!: string;
 }
 
 @ObjectType()
-export class Ff {}
+export class EmptyArrayField {}
 
 @ObjectType()
 export class NestedField {
@@ -100,10 +61,49 @@ export class MixedNestedField {
 }
 
 @ObjectType()
-export class EmptyArrayField {}
+export class F {
+  @Field((type) => Int, { nullable: true })
+  fa?: number;
+
+  @Field((type) => Int, { nullable: true })
+  fb?: number;
+
+  @Field((type) => Int, { nullable: true })
+  fc?: number;
+
+  @Field((type) => [Int], { nullable: true })
+  fd?: number[];
+
+  @Field((type) => [Ff], { nullable: true })
+  ff?: Ff[];
+
+  @Field((type) => Fe, { nullable: true })
+  fe?: Fe;
+}
 
 @ObjectType()
-export class MixedField {
+export class Ff {}
+
+@ObjectType()
+export class Fe {
+  @Field((type) => Int)
+  fea!: number;
+
+  @Field((type) => [Int])
+  feb!: number[];
+
+  @Field((type) => [Fec])
+  fec!: Fec[];
+}
+
+@ObjectType()
+export class Fec {
+  @Field((type) => Int)
+  feca!: number;
+
   @Field()
-  a!: string;
+  fecb!: boolean;
+
+  @Field()
+  fecc!: string[];
 }
