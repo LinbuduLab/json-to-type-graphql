@@ -1,23 +1,29 @@
 {
-  "success": true,
-  "status": 200,
-  "str": "success",
-  "nested": {
-    "name": "linbudu",
-    "age": 18,
-    "arrayField": [
+  "booleanField": true,
+  "numberField": 200,
+  "stringField": "success",
+  "primitiveArrayField": [1, 2, 3, 4, 5],
+  "mixedField": [
+    1,
+    2,
+    {
+      "a": "1111111"
+    }
+  ],
+  "emptyArrayField": [],
+  "nestedField": {
+    "booleanField": true,
+    "numberField": 200,
+    "stringField": "success",
+    "primitiveArrayField": [1, 2, 3, 4, 5],
+    "mixedNestedField": [
       1,
       2,
-      3,
-      4,
-      5,
       {
         "a": "1111111"
       }
     ]
   },
-  "arrayField": [1, 2, 3, 4, 5],
-  "emptyArrayField": [],
   "f": [
     {
       "fa": 1,

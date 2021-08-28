@@ -1,5 +1,62 @@
-import { SourceFile } from "ts-morph";
+import { ClassDeclarationStructure, OptionalKind, SourceFile } from "ts-morph";
 import { ensureArray } from "./utils";
+
+export type ClassGeneratorRecordList =
+  OptionalKind<ClassDeclarationStructure>[];
+
+export function classDeclarationGenerator(
+  source: SourceFile,
+  record: ClassGeneratorRecordList,
+  apply?: boolean
+): void {
+  record.reverse().forEach((classStru) => source.addClass(classStru));
+
+  apply && source.saveSync();
+}
+
+export function checkExistClassDeclarations(source: SourceFile): string[] {
+  return source.getClasses().map((x) => x.getName()!);
+}
+
+export function setNamedImportsMember(
+  source: SourceFile,
+  namedImports: string[],
+  moduleSpecifier: string,
+  apply?: boolean
+) {
+  const target = source.getImportDeclaration(
+    (dec) => dec.getModuleSpecifierValue() === moduleSpecifier
+  );
+
+  target?.removeNamedImports();
+
+  target?.addNamedImports(namedImports);
+
+  apply && source.saveSync();
+}
+
+export function appendNamedImportsMember(
+  source: SourceFile,
+  namedImports: string[],
+  moduleSpecifier: string,
+  apply?: boolean
+) {
+  const target = source.getImportDeclaration(
+    (dec) => dec.getModuleSpecifierValue() === moduleSpecifier
+  );
+
+  const existNamedImports = target
+    ?.getNamedImports()
+    .map((imp) => imp.getText());
+
+  const namedImportsToAppend = namedImports.filter(
+    (imp) => !existNamedImports?.includes(imp)
+  );
+
+  target?.addNamedImports(namedImportsToAppend);
+
+  apply && source.saveSync();
+}
 
 export enum ImportType {
   NAMESPACE_IMPORT = "NAMESPACE_IMPORT",

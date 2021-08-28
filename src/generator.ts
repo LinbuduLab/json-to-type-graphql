@@ -9,7 +9,15 @@ import type {
 import { capitalCase } from "./utils";
 import type { ProcessedFieldInfoObject, Options } from "./utils";
 
-import { addImportDeclaration, ImportType } from "./ast";
+import {
+  addImportDeclaration,
+  appendNamedImportsMember,
+  checkExistClassDeclarations,
+  ImportType,
+  setNamedImportsMember,
+  ClassGeneratorRecordList,
+  classDeclarationGenerator,
+} from "./ast";
 
 export function generator(
   outputPath: string,
@@ -17,6 +25,7 @@ export function generator(
   options?: Options["generator"]
 ) {
   const source = new Project().addSourceFileAtPath(outputPath);
+  const classList: ClassGeneratorRecordList = [];
 
   addImportDeclaration(
     source,
@@ -26,12 +35,15 @@ export function generator(
     false
   );
 
-  classDeclarationGenerator(source, parsed, options);
+  classDecInfoCollector(source, parsed, classList, options);
+
+  classDeclarationGenerator(source, classList, true);
 }
 
-export function classDeclarationGenerator(
+export function classDecInfoCollector(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
+  list: ClassGeneratorRecordList,
   options?: Options["generator"]
 ): void {
   const {
@@ -51,7 +63,7 @@ export function classDeclarationGenerator(
 
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested)
-      classDeclarationGenerator(source, v.fields!, {
+      classDecInfoCollector(source, v.fields!, list, {
         entryClassName: v.propType,
         publicProps,
         readonlyProps,
@@ -85,7 +97,7 @@ export function classDeclarationGenerator(
     });
   }
 
-  source.addClass({
+  list.push({
     name:
       entryClassName === "__TMP_CLASS_NAME__"
         ? "__TMP_CLASS_NAME__"
