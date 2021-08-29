@@ -20,7 +20,6 @@ export default function handler(
   outputPath: string,
   options?: Options
 ): void {
-  fs.rmSync(outputPath);
   fs.createFileSync(outputPath);
 
   const { preserveObjectOnlyInArray = true, customPreprocesser = undefined } =
