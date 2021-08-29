@@ -2,6 +2,8 @@
 
 Generate TypeGraphQL class from JSON object:
 
+> Using [demo.ts](demo.ts) & [demo.json](demo.json):
+
 JSON:
 
 ```json
@@ -40,7 +42,12 @@ const content = jsonfile.readFileSync("./demo.json");
 
 fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
-transformer(content, outputPath, { generator: { entryClassName: "Root" } });
+transformer(content, outputPath, {
+  parser: {
+    forceNonNullableListItem: true,
+  },
+  generator: { entryClassName: "Root" },
+});
 ```
 
 generated:
@@ -50,26 +57,26 @@ import { ObjectType, Field, Int, ID } from "type-graphql";
 
 @ObjectType()
 export class Root {
-  @Field({ nullable: true })
-  booleanField?: boolean;
+  @Field()
+  booleanField!: boolean;
 
-  @Field((type) => Int, { nullable: true })
-  numberField?: number;
+  @Field((type) => Int!)
+  numberField!: number;
 
-  @Field({ nullable: true })
-  stringField?: string;
+  @Field()
+  stringField!: string;
 
-  @Field((type) => [Int], { nullable: true })
-  primitiveArrayField?: number[];
+  @Field((type) => [Int!]!)
+  primitiveArrayField!: number[];
 
-  @Field((type) => [MixedField], { nullable: true })
-  mixedField?: MixedField[];
+  @Field((type) => [MixedField!]!)
+  mixedField!: MixedField[];
 
-  @Field((type) => [EmptyArrayField], { nullable: true })
-  emptyArrayField?: EmptyArrayField[];
+  @Field((type) => [EmptyArrayField!]!)
+  emptyArrayField!: EmptyArrayField[];
 
-  @Field((type) => NestedField, { nullable: true })
-  nestedField?: NestedField;
+  @Field((type) => NestedField!)
+  nestedField!: NestedField;
 }
 
 @ObjectType()
@@ -83,20 +90,20 @@ export class EmptyArrayField {}
 
 @ObjectType()
 export class NestedField {
-  @Field({ nullable: true })
-  booleanField?: boolean;
+  @Field()
+  booleanField!: boolean;
 
-  @Field((type) => Int, { nullable: true })
-  numberField?: number;
+  @Field((type) => Int!)
+  numberField!: number;
 
-  @Field({ nullable: true })
-  stringField?: string;
+  @Field()
+  stringField!: string;
 
-  @Field((type) => [Int], { nullable: true })
-  primitiveArrayField?: number[];
+  @Field((type) => [Int!]!)
+  primitiveArrayField!: number[];
 
-  @Field((type) => [Int], { nullable: true })
-  mixedFieldrs?: number[];
+  @Field((type) => [Int!]!)
+  mixedFieldrs!: number[];
 }
 ```
 

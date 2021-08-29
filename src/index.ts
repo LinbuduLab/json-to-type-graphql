@@ -26,7 +26,7 @@ export default function handler(
     options?.preprocesser ?? {};
 
   const {
-    forceNonNullable = false,
+    forceNonNullable = true,
     forceReturnType = false,
     arrayEntryProp = ARRAY_ENTRY_STRUCTURE_PROP,
     forceNonNullableListItem = false,

@@ -9,4 +9,9 @@ const content = jsonfile.readFileSync("./demo.json");
 
 fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
-transformer(content, outputPath, { generator: { entryClassName: "Root" } });
+transformer(content, outputPath, {
+  parser: {
+    forceNonNullableListItem: true,
+  },
+  generator: { entryClassName: "Root" },
+});
