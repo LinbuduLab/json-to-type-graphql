@@ -10,6 +10,12 @@ import type {
   ParserOptions,
 } from "./utils";
 
+/**
+ * Parse raw content to specific structure which can be consumed by generator
+ * @param content Input content
+ * @param options Parser options
+ * @returns
+ */
 export function parser(
   content: SourceObject | SourceArray,
   options: Required<ParserOptions>
@@ -19,6 +25,12 @@ export function parser(
     : objectEntryParser(content, options);
 }
 
+/**
+ * Handle array entry json structure parsing
+ * @param content Input content
+ * @param options Parser options
+ * @returns
+ */
 export function arrayEntryParser(
   content: SourceArray,
   options: ParserOptions
@@ -99,6 +111,12 @@ export function arrayEntryParser(
   return parsedFieldInfo;
 }
 
+/**
+ * Handle common object entry json structure parsing
+ * @param content Input content
+ * @param options Parser options
+ * @returns
+ */
 export function objectEntryParser(
   content: SourceObject | SourceArray,
   options: ParserOptions
@@ -212,6 +230,12 @@ export function objectEntryParser(
   return parsedFieldInfo;
 }
 
+/**
+ * Handle object member array parsing
+ * @param arr
+ * @param options
+ * @returns
+ */
 export function objectArrayParser(
   arr: SourceObject[],
   options: ParserOptions

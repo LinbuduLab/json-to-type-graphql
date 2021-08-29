@@ -104,10 +104,6 @@ export function collectClassStruInfo(
 
     if (v.nullable) fieldReturnType.push(`{ nullable: true }`);
 
-    if (v.prop === "ff") {
-      console.log(v, fieldReturnType);
-    }
-
     properties.push({
       name: v.prop,
       type: propType,

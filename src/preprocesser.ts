@@ -2,6 +2,13 @@ import { strictTypeChecker, ValidFieldType } from "./utils";
 
 import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
 
+/**
+ * Pre-process raw content before it's passed to parser.
+ * Nested array will be removed for now(not support yet).
+ * @param raw
+ * @param options
+ * @returns
+ */
 export function preprocesser(
   raw: SourceObject | SourceObject[] | SourceArray,
   options: PreprocesserOptions
@@ -33,6 +40,12 @@ export function preprocesser(
   return raw;
 }
 
+/**
+ * Ensure only object or primitive type exist in an array.
+ * @param raw
+ * @param param1
+ * @returns
+ */
 export function arrayPreprocesser(
   raw: SourceArray,
   { preserveObjectOnlyInArray }: PreprocesserOptions
@@ -54,6 +67,11 @@ type ShouldProcessResult = {
   shouldApplyProcess: boolean;
 };
 
+/**
+ * Determine should process array and split primitive & object members
+ * @param arr
+ * @returns
+ */
 export function shouldProcess(
   arr: SourceArray | SourceObject[]
 ): ShouldProcessResult {
@@ -68,6 +86,11 @@ export function shouldProcess(
   };
 }
 
+/**
+ * Preserve only object type in an array, primitive type will be removed.
+ * @param arr
+ * @returns
+ */
 export function preserveObjectTypeInArrayOnly(
   arr: SourceArray
 ): SourceObject[] {
@@ -76,6 +99,11 @@ export function preserveObjectTypeInArrayOnly(
   ) as SourceObject[];
 }
 
+/**
+ * Preserve only primitive type in an array, object type will be removed.
+ * @param arr
+ * @returns
+ */
 export function preservePrimitiveTypeInArrayOnly(
   arr: SourceArray
 ): SourceArray {

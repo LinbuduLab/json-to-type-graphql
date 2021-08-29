@@ -2,7 +2,11 @@ import { Options as PrettierOptions } from "prettier";
 import { capitalCase as originalCapitalCase } from "capital-case";
 import { OptionalKind, ClassDeclarationStructure } from "ts-morph";
 
-// avoid "nestedType" -> "Nested Type"
+/**
+ * Capitalize string, avoid incorrect behaviour like: "nestedType" -> "Nested Type"
+ * @param str
+ * @returns
+ */
 export const capitalCase: typeof originalCapitalCase = (str) =>
   originalCapitalCase(str, { delimiter: "" });
 
@@ -34,6 +38,9 @@ export type ValidPrimitiveType = "string" | "number" | "boolean";
 
 export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
 
+/**
+ * Custom preprocess function
+ */
 export type PreprocesserFunc = (
   raw: SourceObject | SourceObject[] | SourceArray,
   options: PreprocesserOptions
@@ -45,9 +52,21 @@ export type PreprocesserOptions = {
 };
 
 export type Options = {
+  /**
+   * Options pass to preprocesser
+   */
   preprocesser?: Partial<PreprocesserOptions>;
+  /**
+   * Options pass to parser
+   */
   parser?: Partial<ParserOptions>;
+  /**
+   * Options pass to generator
+   */
   generator?: Partial<GeneratorOptions>;
+  /**
+   * Options pass to formatter
+   */
   formatter?: Partial<FormatterOptions>;
 };
 
@@ -85,6 +104,10 @@ export type ParsedFieldInfo = {
 
 export type ProcessedFieldInfoObject = Record<string, ParsedFieldInfo>;
 
+/**
+ * Valid field type
+ * which can be used by parser and generator to perform different operations on.
+ */
 export const enum ValidFieldType {
   Null = "Null",
   Undefined = "Undefined",
@@ -98,10 +121,20 @@ export const enum ValidFieldType {
   Ignore = "Ignore",
 }
 
+/**
+ * Ensure args to be array
+ * @param maybeArray
+ * @returns
+ */
 export function ensureArray<T>(maybeArray: T | T[]): T[] {
   return Array.isArray(maybeArray) ? maybeArray : [maybeArray];
 }
 
+/**
+ * Simply reverse object by reversing its keys.
+ * @param object
+ * @returns
+ */
 export function reverseObjectKeys(
   object: ClassGeneratorRecord
 ): ClassGeneratorRecord {
@@ -113,6 +146,11 @@ export function reverseObjectKeys(
   return result;
 }
 
+/**
+ * Classify field type to stricter kinds
+ * @param val
+ * @returns `ValidFieldType`
+ */
 export function strictTypeChecker(val: unknown): ValidFieldType {
   if (val === null) return ValidFieldType.Null;
   if (typeof val === "undefined") return ValidFieldType.Undefined;
@@ -139,6 +177,12 @@ export function normalizeClassFix(
   return fix ? (typeof fix === "string" ? fix : fallback) : "";
 }
 
+/**
+ * Nornalize type fix, skip on specific field type
+ * @param fix
+ * @param type
+ * @returns
+ */
 export function normalizeTypeFix(fix: string, type: ValidFieldType): string {
   return [
     ValidFieldType.Boolean,

@@ -9,6 +9,12 @@ import { formatter } from "./formatter";
 import { ARRAY_ENTRY_STRUCTURE_PROP, DEFAULT_ENTRY_CLASS_NAME } from "./utils";
 import type { Options, SourceObject } from "./utils";
 
+/**
+ * Generate TypeGraphQL class declaration from JSON object
+ * @param content Input raw content
+ * @param outputPath Output file path
+ * @param options
+ */
 export default function handler(
   content: SourceObject | SourceObject[],
   outputPath: string,

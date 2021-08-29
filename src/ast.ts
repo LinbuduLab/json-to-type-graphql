@@ -3,17 +3,22 @@ import type { SourceFile } from "ts-morph";
 import { ClassInfo, ensureArray, reverseObjectKeys } from "./utils";
 import type { ClassGeneratorRecord } from "./utils";
 
+/** Global record for class declaration generation */
 let collectedInfoRecord: ClassGeneratorRecord = {};
 
+/**
+ * Start class declaration generation from reversed record
+ * @param source Source
+ * @param record Generation record
+ * @param apply Should apply change directly to the source file
+ * @description Current generation order: `P - C1 - C1-1 - C2 - C2-1 - C3`,
+ * will support `P - C1 - C2 - C3 - C1-1 - C1-2 in the future`
+ */
 export function invokeClassDeclarationGenerator(
   source: SourceFile,
   record: ClassGeneratorRecord,
   apply?: boolean
 ) {
-  // 这种模式下的生成顺序：
-  // P - C1 - C1-1 - C2 - C2-1 - C3
-  // 另外一种可能需要的生成顺序
-  // P - C1 - C2 - C3 - C1-1 - C1-2
   const reversedRecord = reverseObjectKeys(record);
 
   collectedInfoRecord = reversedRecord;
@@ -21,6 +26,13 @@ export function invokeClassDeclarationGenerator(
   classDeclarationGenerator(source, reversedRecord, apply);
 }
 
+/**
+ * Traverse the global record to generate class declarations
+ * Will execute recursively if record item containes non-empty children prop
+ * @param source Source
+ * @param record Generation record
+ * @param apply Should apply change directly to the source file
+ */
 export function classDeclarationGenerator(
   source: SourceFile,
   record: ClassGeneratorRecord,
@@ -41,10 +53,22 @@ export function classDeclarationGenerator(
   apply && source.saveSync();
 }
 
+/**
+ * Check exist class declaration in current source file
+ * @param source Source
+ * @return List of exist class declaration specifier.
+ */
 export function checkExistClassDeclarations(source: SourceFile): string[] {
   return source.getClasses().map((x) => x.getName()!);
 }
 
+/**
+ * Directly set named imports member, exist named imports will be removed.
+ * @param source Source
+ * @param namedImports New named imports to set
+ * @param moduleSpecifier The import declaration to operate
+ * @param apply Should apply change directly to the source file
+ */
 export function setNamedImportsMember(
   source: SourceFile,
   namedImports: string[],
@@ -62,6 +86,13 @@ export function setNamedImportsMember(
   apply && source.saveSync();
 }
 
+/**
+ * Append new named imports member
+ * @param source Source
+ * @param namedImports New named imports to append
+ * @param moduleSpecifier The import declaration to operate
+ * @param apply Should apply change directly to the source file
+ */
 export function appendNamedImportsMember(
   source: SourceFile,
   namedImports: string[],
@@ -91,6 +122,12 @@ export enum ImportType {
   DEFAULT_IMPORT = "DEFAULT_IMPORT",
 }
 
+/**
+ * Add a namespace import declaration in source file
+ * @param source Source
+ * @param namespace Namespace import
+ * @param moduleSpecifier The import declaration to operate
+ */
 export function addImportDeclaration(
   source: SourceFile,
   namespace: string,
@@ -99,6 +136,12 @@ export function addImportDeclaration(
   apply?: boolean
 ): void;
 
+/**
+ * Add a named import declaration in source file
+ * @param source Source
+ * @param namedImports Named imports
+ * @param moduleSpecifier The import declaration to operate
+ */
 export function addImportDeclaration(
   source: SourceFile,
   namedImports: string[],
@@ -107,6 +150,12 @@ export function addImportDeclaration(
   apply?: boolean
 ): void;
 
+/**
+ * Add a default import declaration in source file
+ * @param source Source
+ * @param defaultImport Default import
+ * @param moduleSpecifier The import declaration to operate
+ */
 export function addImportDeclaration(
   source: SourceFile,
   defaultImport: string,
