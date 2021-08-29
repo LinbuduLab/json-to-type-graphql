@@ -1,11 +1,26 @@
 {
-  "name": "JSON2TypeGraphQLClass",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "json-type-graphql",
+  "version": "0.1.0",
+  "description": "Generate TypeGraphQL Class From JSON Object",
+  "main": "dist/index.js",
   "repository": "https://github.com/linbudu599/JSON2TypeGraphQLClass.git",
   "license": "MIT",
+  "scripts": {
+    "release": "release-it",
+    "release:dry": "release-it --dry-run",
+    "dev": "tsnd --respawn --rs --transpile-only  ./index.ts",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "check": "tsc --noEmit",
+    "commit": "git add -A & git-cz",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "test": "jest --color --runInBand",
+    "test:watch": "jest --color --watch --verbose --passWithNoTests",
+    "test:affected": "jest --lastCommit",
+    "test:list": "jest --listTests"
+  },
   "dependencies": {
-    "@types/node": "^16.7.4",
     "capital-case": "^1.0.4",
     "fs-extra": "^10.0.0",
     "got": "^11.8.2",
@@ -13,17 +28,17 @@
     "jsonfile": "^6.1.0",
     "lodash": "^4.17.21",
     "prettier": "^2.3.2",
-    "string": "^3.3.3",
-    "ts-morph": "^12.0.0",
-    "ts-node-dev": "^1.1.8",
-    "type-graphql": "^1.1.1",
-    "typescript": "^4.4.2"
+    "ts-morph": "^12.0.0"
   },
   "devDependencies": {
     "@types/fs-extra": "^9.0.12",
     "@types/jsonfile": "^6.0.1",
+    "@types/node": "^16.7.4",
     "@types/lodash": "^4.14.172",
     "@types/prettier": "^2.3.2",
-    "consola": "^2.15.3"
+    "consola": "^2.15.3",
+    "ts-node-dev": "^1.1.8",
+    "type-graphql": "^1.1.1",
+    "typescript": "^4.4.2"
   }
 }

@@ -22,3 +22,4 @@
 - √ 生成最后一个，再。。
 - √ forceNonNullListItem
 - √ 也可以通过 干预 preprocesser 来处理类名重复
+- √ 支持 verbose -> 打印 parsed
