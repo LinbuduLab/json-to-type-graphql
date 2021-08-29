@@ -8,8 +8,8 @@
   "scripts": {
     "release": "release-it",
     "release:dry": "release-it --dry-run",
-    "dev": "tsnd --respawn --rs --transpile-only  ./index.ts",
-    "demo": "tsnd --respawn --rs --transpile-only  ./demo.ts",
+    "dev": "tsnd --respawn --rs --transpile-only  ./src/sample/index.ts",
+    "demo": "tsnd --respawn --rs --transpile-only  ./src/sample/demo.ts",
     "build": "tsc",
     "build:watch": "tsc --watch",
     "check": "tsc --noEmit",

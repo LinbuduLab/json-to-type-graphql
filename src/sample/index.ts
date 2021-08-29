@@ -1,10 +1,13 @@
 import path from "path";
+import fs from "fs-extra";
 import jsonfile from "jsonfile";
-import transformer from "./src";
+import transformer from "..";
 const outputPath = path.join(__dirname, "./testing.ts");
 
-const content = jsonfile.readFileSync("./sample.json");
+const content = jsonfile.readFileSync(path.join(__dirname, "./sample.json"));
 // const content = jsonfile.readFileSync("./array-entry.json");
+
+fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
 transformer(content, outputPath, {
   parser: {

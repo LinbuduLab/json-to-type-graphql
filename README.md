@@ -116,3 +116,4 @@ export class NestedField {
   - [ ] Performance
   - [ ] Support nested array
   - [ ] Powerful formatter
+  - [ ] Better control on field return type
