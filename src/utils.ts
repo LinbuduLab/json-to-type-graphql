@@ -1,17 +1,34 @@
 import { Options as PrettierOptions } from "prettier";
 import { capitalCase as originalCapitalCase } from "capital-case";
+import { OptionalKind, ClassDeclarationStructure } from "ts-morph";
 
 // avoid "nestedType" -> "Nested Type"
 export const capitalCase: typeof originalCapitalCase = (str) =>
   originalCapitalCase(str, { delimiter: "" });
 
+export type ClassGeneratorRecord = Record<
+  string,
+  {
+    info: OptionalKind<ClassDeclarationStructure>;
+    parent: string | null;
+    children: string[];
+    generated: boolean;
+  }
+>;
+
+export type ClassInfo = OptionalKind<ClassDeclarationStructure>;
+
 export const ARRAY_ENTRY_STRUCTURE_PROP = "data";
+
+export const DEFAULT_ENTRY_CLASS_NAME = "__TMP_CLASS_NAME__";
 
 export type PlainObject = Record<string, unknown>;
 
 export type SourceObject = Record<string, ValidPrimitiveType | "object">;
 
 export type ValidPrimitiveType = "string" | "number" | "boolean";
+
+export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
 
 export type ParserOptions = {
   forceNonNullable: boolean;
@@ -70,6 +87,17 @@ export const enum ValidFieldType {
 
 export function ensureArray<T>(maybeArray: T | T[]): T[] {
   return Array.isArray(maybeArray) ? maybeArray : [maybeArray];
+}
+
+export function reverseObjectKeys(
+  object: ClassGeneratorRecord
+): ClassGeneratorRecord {
+  const result: ClassGeneratorRecord = {};
+  for (const key of Object.keys(object).reverse()) {
+    result[key] = object[key];
+  }
+
+  return result;
 }
 
 export function strictTypeChecker(val: unknown): ValidFieldType {

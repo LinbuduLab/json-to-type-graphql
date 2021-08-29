@@ -6,23 +6,22 @@ import type {
   OptionalKind,
 } from "ts-morph";
 
-import { capitalCase } from "./utils";
-import type { ProcessedFieldInfoObject, Options } from "./utils";
+import { capitalCase, DEFAULT_ENTRY_CLASS_NAME, RecordValue } from "./utils";
+import type {
+  ProcessedFieldInfoObject,
+  Options,
+  ClassGeneratorRecord,
+} from "./utils";
 
 import {
   addImportDeclaration,
-  appendNamedImportsMember,
-  checkExistClassDeclarations,
   ImportType,
-  setNamedImportsMember,
-  ClassGeneratorRecord,
-  classDeclarationGenerator,
-  classDeclarationGeneratorWrapper,
+  invokeClassDeclarationGenerator,
 } from "./ast";
 
 export function generator(
-  outputPath: string,
   parsed: ProcessedFieldInfoObject,
+  outputPath: string,
   options?: Options["generator"]
 ) {
   const source = new Project().addSourceFileAtPath(outputPath);
@@ -44,22 +43,20 @@ export function generator(
     options
   );
 
-  // classDeclarationGenerator(source, classGeneratorRecord, true);
+  const finalRecord = reverseRelation(classGeneratorRecord);
 
-  const tmp = reverseRelation(classGeneratorRecord);
-
-  classDeclarationGeneratorWrapper(source, tmp);
+  invokeClassDeclarationGenerator(source, finalRecord, true);
 }
 
 export function classDecInfoCollector(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
-  list: ClassGeneratorRecord,
+  record: ClassGeneratorRecord,
   parent?: string,
   options?: Options["generator"]
 ): void {
   const {
-    entryClassName = "__TMP_CLASS_NAME__",
+    entryClassName = DEFAULT_ENTRY_CLASS_NAME,
     publicProps = [],
     readonlyProps = [],
     suffix = false,
@@ -75,7 +72,7 @@ export function classDecInfoCollector(
 
   for (const [, v] of Object.entries(parsed)) {
     if (v.nested)
-      classDecInfoCollector(source, v.fields!, list, entryClassName, {
+      classDecInfoCollector(source, v.fields!, record, entryClassName, {
         entryClassName: v.propType,
         publicProps,
         readonlyProps,
@@ -109,11 +106,11 @@ export function classDecInfoCollector(
     });
   }
 
-  const record = {
+  const currentRecord: RecordValue<ClassGeneratorRecord> = {
     info: {
       name:
-        entryClassName === "__TMP_CLASS_NAME__"
-          ? "__TMP_CLASS_NAME__"
+        entryClassName === DEFAULT_ENTRY_CLASS_NAME
+          ? DEFAULT_ENTRY_CLASS_NAME
           : capitalCase(`${entryClassName}`),
       decorators: classDecorator,
       properties,
@@ -121,11 +118,10 @@ export function classDecInfoCollector(
     },
     parent: parent ?? null,
     children: [],
+    generated: false,
   };
 
-  list[entryClassName] = record;
-
-  source.saveSync();
+  record[entryClassName] = currentRecord;
 }
 
 export function reverseRelation(raw: ClassGeneratorRecord) {

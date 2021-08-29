@@ -6,9 +6,9 @@ import { generator } from "./generator";
 import { formatter } from "./formatter";
 
 import { ARRAY_ENTRY_STRUCTURE_PROP } from "./utils";
-import type { Options, SourceObject, ValidPrimitiveType } from "./utils";
+import type { Options, SourceObject } from "./utils";
 
-export default function transformer(
+export default function handler(
   content: SourceObject | SourceObject[],
   outputPath: string,
   options?: Options
@@ -24,15 +24,17 @@ export default function transformer(
 
   const { preserveObjectOnlyInArray = true } = options?.preprocesser ?? {};
 
-  generator(
-    outputPath,
-    parser(preprocesser(content, { preserveObjectOnlyInArray }), {
-      forceNonNullable,
-      forceReturnType,
-      arrayEntryProp,
-    }),
-    options?.generator
-  );
+  const originInput = content;
+
+  preprocesser(originInput, { preserveObjectOnlyInArray });
+
+  const parsedInfo = parser(content, {
+    forceNonNullable,
+    forceReturnType,
+    arrayEntryProp,
+  });
+
+  generator(parsedInfo, outputPath, options?.generator);
 
   formatter(outputPath, options?.formatter);
 }

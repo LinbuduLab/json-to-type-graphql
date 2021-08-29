@@ -1,16 +1,6 @@
-import {
-  SourceObject,
-  PlainObject,
-  Options,
-  strictTypeChecker,
-  ValidFieldType,
-  PreprocesserOptions,
-} from "./utils";
+import { strictTypeChecker, ValidFieldType } from "./utils";
 
-/**
- * 对于既拥有原始类型和对象类型的数组 递归的移除其中的原始类型
- * 对于对象类型
- */
+import type { SourceObject, PreprocesserOptions } from "./utils";
 
 export function preprocesser(
   raw: SourceObject | SourceObject[],

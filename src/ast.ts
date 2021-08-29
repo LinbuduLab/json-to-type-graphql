@@ -1,38 +1,24 @@
-import { ClassDeclarationStructure, OptionalKind, SourceFile } from "ts-morph";
-import { ensureArray } from "./utils";
+import type { SourceFile } from "ts-morph";
 
-// TODO: infer Record value type
-export type ClassGeneratorRecord = Record<
-  string,
-  {
-    info: OptionalKind<ClassDeclarationStructure>;
-    parent: string | null;
-    children: string[];
-    generated?: boolean;
-  }
->;
+import { ClassInfo, ensureArray, reverseObjectKeys } from "./utils";
+import type { ClassGeneratorRecord } from "./utils";
 
-export function reverseObjectKeys(
-  object: ClassGeneratorRecord
-): ClassGeneratorRecord {
-  const result: ClassGeneratorRecord = {};
-  for (const key of Object.keys(object).reverse()) {
-    result[key] = object[key];
-  }
+let collectedInfoRecord: ClassGeneratorRecord = {};
 
-  return result;
-}
-
-let xx: ClassGeneratorRecord = {};
-
-export function classDeclarationGeneratorWrapper(
+export function invokeClassDeclarationGenerator(
   source: SourceFile,
-  record: ClassGeneratorRecord
+  record: ClassGeneratorRecord,
+  apply?: boolean
 ) {
-  const tmp = reverseObjectKeys(record);
-  xx = tmp;
+  // 这种模式下的生成顺序：
+  // P - C1 - C1-1 - C2 - C2-1 - C3
+  // 另外一种可能需要的生成顺序
+  // P - C1 - C2 - C3 - C1-1 - C1-2
+  const reversedRecord = reverseObjectKeys(record);
 
-  classDeclarationGenerator(source, tmp);
+  collectedInfoRecord = reversedRecord;
+
+  classDeclarationGenerator(source, reversedRecord, apply);
 }
 
 export function classDeclarationGenerator(
@@ -40,29 +26,19 @@ export function classDeclarationGenerator(
   record: ClassGeneratorRecord,
   apply?: boolean
 ): void {
-  // console.log(reverseObjectKeys(record));
-
-  // 理想的顺序
-  // 如果存在 children，首先生成这一项
-  // 将 children 对应
-  // 键值对取出 递归进行处理？
-
   for (const [k, v] of Object.entries(record)) {
-    console.log("k, v: ", k, v);
     !v?.generated && source.addClass(v.info);
     v.generated = true;
     if (v.children.length) {
       for (const child of v.children) {
         classDeclarationGenerator(source, {
-          [child]: xx[child],
+          [child]: collectedInfoRecord[child],
         });
       }
     }
   }
 
-  // record.reverse().forEach((classStru) => source.addClass(classStru));
-
-  source.saveSync();
+  apply && source.saveSync();
 }
 
 export function checkExistClassDeclarations(source: SourceFile): string[] {
@@ -179,5 +155,14 @@ export function addImportDeclaration(
       return;
   }
 
+  apply && source.saveSync();
+}
+
+export function classDeclarationGeneratorFromList(
+  source: SourceFile,
+  list: ClassInfo[],
+  apply?: boolean
+): void {
+  list.forEach((classInfo) => source.addClass(classInfo));
   apply && source.saveSync();
 }
