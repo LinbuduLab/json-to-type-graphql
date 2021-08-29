@@ -75,7 +75,6 @@ export function collectClassStruInfo(
 
   const classPrefix = normalizeClassFix(prefix, entryClassName);
   const classSuffix = normalizeClassFix(suffix, DEFAULT_SUFFIX);
-
   for (const [, v] of Object.entries(parsed)) {
     const typePrefix = normalizeTypeFix(classPrefix, v.type);
     const typeSuffix = normalizeTypeFix(classSuffix, v.type);
@@ -104,6 +103,10 @@ export function collectClassStruInfo(
       : [];
 
     if (v.nullable) fieldReturnType.push(`{ nullable: true }`);
+
+    if (v.prop === "ff") {
+      console.log(v, fieldReturnType);
+    }
 
     properties.push({
       name: v.prop,
@@ -138,7 +141,6 @@ export function collectClassStruInfo(
   };
 
   record[entryClassName] = currentRecord;
-  // source.addClass(currentRecord.info);
 }
 
 export function reverseRelation(raw: ClassGeneratorRecord) {

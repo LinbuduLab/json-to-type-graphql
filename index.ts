@@ -14,6 +14,7 @@ transformer(content, outputPath, {
   },
   preprocesser: {
     preserveObjectOnlyInArray: true,
+    // customPreprocesser: (raw, options) => raw,
   },
   generator: {
     prefix: false,

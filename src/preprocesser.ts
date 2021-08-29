@@ -5,8 +5,14 @@ import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
 export function preprocesser(
   raw: SourceObject | SourceObject[] | SourceArray,
   options: PreprocesserOptions
-): SourceObject | SourceObject[] {
-  const { preserveObjectOnlyInArray } = options;
+): SourceObject | SourceObject[] | SourceArray {
+  if (
+    options.customPreprocesser &&
+    typeof options.customPreprocesser === "function"
+  ) {
+    return options.customPreprocesser(raw, options);
+  }
+
   if (Array.isArray(raw)) {
     return arrayPreprocesser(raw, options);
   }

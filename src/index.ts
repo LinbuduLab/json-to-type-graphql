@@ -17,7 +17,8 @@ export default function handler(
   fs.rmSync(outputPath);
   fs.createFileSync(outputPath);
 
-  const { preserveObjectOnlyInArray = true } = options?.preprocesser ?? {};
+  const { preserveObjectOnlyInArray = true, customPreprocesser = undefined } =
+    options?.preprocesser ?? {};
 
   const {
     forceNonNullable = false,
@@ -38,9 +39,12 @@ export default function handler(
 
   const originInput = content;
 
-  preprocesser(originInput, { preserveObjectOnlyInArray });
+  const preprocessed = preprocesser(originInput, {
+    preserveObjectOnlyInArray,
+    customPreprocesser,
+  });
 
-  const parsedInfo = parser(content, {
+  const parsedInfo = parser(preprocessed, {
     forceNonNullable,
     forceReturnType,
     arrayEntryProp,

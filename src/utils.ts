@@ -34,8 +34,14 @@ export type ValidPrimitiveType = "string" | "number" | "boolean";
 
 export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
 
+export type PreprocesserFunc = (
+  raw: SourceObject | SourceObject[] | SourceArray,
+  options: PreprocesserOptions
+) => SourceObject | SourceObject[];
+
 export type PreprocesserOptions = {
   preserveObjectOnlyInArray?: boolean;
+  customPreprocesser?: PreprocesserFunc;
 };
 
 export type Options = {

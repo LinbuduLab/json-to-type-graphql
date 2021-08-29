@@ -46,7 +46,8 @@ export function arrayEntryParser(
         nested: false,
         list: true,
         prop: arrayEntryProp,
-        nullable: false,
+        nullable: !forceNonNullable,
+        nullableListItem: !forceNonNullableListItem,
         fields: null,
         decoratorReturnType:
           typeof randomItem === "number"
@@ -65,7 +66,8 @@ export function arrayEntryParser(
         nested: true,
         list: true,
         prop: arrayEntryProp,
-        nullable: false,
+        nullable: !forceNonNullable,
+        nullableListItem: !forceNonNullableListItem,
         fields: objectArrayParser(content as SourceObject[], options),
         decoratorReturnType: capitalCase(arrayEntryProp),
       };
@@ -79,7 +81,8 @@ export function arrayEntryParser(
         propType: capitalCase(arrayEntryProp),
         decoratorReturnType: capitalCase(arrayEntryProp),
         nested: true,
-        nullable: false,
+        nullable: !forceNonNullable,
+        nullableListItem: !forceNonNullableListItem,
         prop: arrayEntryProp,
         fields: {},
       };
@@ -116,7 +119,7 @@ export function objectEntryParser(
           propType: typeof v,
           nested: false,
           prop: k,
-          nullable: false,
+          nullable: !forceNonNullable,
           list: false,
           fields: null,
           decoratorReturnType: forceReturnType ? type : null,
@@ -130,7 +133,7 @@ export function objectEntryParser(
           propType: "number",
           nested: false,
           prop: k,
-          nullable: false,
+          nullable: !forceNonNullable,
           list: false,
           fields: null,
           decoratorReturnType: "Int",
@@ -145,7 +148,7 @@ export function objectEntryParser(
           nested: true,
           list: false,
           prop: k,
-          nullable: false,
+          nullable: !forceNonNullable,
           decoratorReturnType: capitalCasedKey,
           fields: parser(v, options),
         };
@@ -159,7 +162,8 @@ export function objectEntryParser(
           propType: capitalCasedKey,
           decoratorReturnType: capitalCasedKey,
           nested: true,
-          nullable: false,
+          nullable: !forceNonNullable,
+          nullableListItem: !forceNonNullableListItem,
           prop: k,
           fields: {},
         };
@@ -172,8 +176,8 @@ export function objectEntryParser(
           nested: false,
           list: true,
           prop: k,
-          nullable: false,
           fields: null,
+          nullable: !forceNonNullable,
           nullableListItem: !forceNonNullableListItem,
           decoratorReturnType:
             typeof v[0] === "number"
@@ -191,7 +195,7 @@ export function objectEntryParser(
           propType: capitalCasedKey,
           decoratorReturnType: capitalCasedKey,
           nested: true,
-          nullable: false,
+          nullable: !forceNonNullable,
           nullableListItem: !forceNonNullableListItem,
           prop: k,
           fields: objectArrayParser(v, options),
@@ -215,7 +219,7 @@ export function objectArrayParser(
   const keys: string[][] = [];
   const parsedKeys: ParsedFieldInfo[] = [];
 
-  const { forceNonNullable = false, forceReturnType = false } = options ?? {};
+  const { forceNonNullable } = options ?? {};
 
   const processedResult: ProcessedFieldInfoObject = {};
 
@@ -233,6 +237,8 @@ export function objectArrayParser(
     parsedKeys.push({
       ...parser(nonNullSharedItem[0], options)[key],
       shared: true,
+      // NOTE: shared keys are regarded as non-nullable value
+      // even in common array entry situation
       nullable: false,
     });
   });

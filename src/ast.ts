@@ -124,10 +124,8 @@ export function addImportDeclaration(
 ) {
   switch (importType) {
     case ImportType.DEFAULT_IMPORT:
-      if (typeof importClause !== "string") throw new Error();
-
       source.addImportDeclaration({
-        defaultImport: importClause,
+        defaultImport: importClause as string,
         moduleSpecifier,
       });
 
@@ -142,8 +140,6 @@ export function addImportDeclaration(
       break;
 
     case ImportType.NAMESPACE_IMPORT:
-      if (typeof importClause !== "string") throw new Error();
-
       source.addImportDeclaration({
         namespaceImport: importClause as string,
         moduleSpecifier: moduleSpecifier,
