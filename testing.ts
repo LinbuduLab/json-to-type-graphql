@@ -1,102 +1,6 @@
 import { ObjectType, Field, Int, ID } from "type-graphql";
 
 @ObjectType()
-export class MixedField {
-  @Field()
-  a!: string;
-}
-
-@ObjectType()
-export class EmptyArrayField {}
-
-@ObjectType()
-export class MixedField1 {
-  @Field()
-  a111!: string;
-}
-
-@ObjectType()
-export class C {
-  @Field((type) => MixedField1!)
-  mixedField1!: MixedField1;
-}
-
-@ObjectType()
-export class MixedFieldrs {
-  @Field()
-  b!: string;
-
-  @Field((type) => C!)
-  c!: C;
-}
-
-@ObjectType()
-export class NestedField {
-  @Field()
-  booleanField!: boolean;
-
-  @Field((type) => Int!)
-  numberField!: number;
-
-  @Field()
-  stringField!: string;
-
-  @Field((type) => [Int!]!)
-  primitiveArrayField!: number[];
-
-  @Field((type) => [MixedFieldrs!]!)
-  mixedFieldrs!: MixedFieldrs[];
-}
-
-@ObjectType()
-export class Ff {}
-
-@ObjectType()
-export class Fec {
-  @Field((type) => Int!)
-  feca!: number;
-
-  @Field()
-  fecb!: boolean;
-
-  @Field()
-  fecc!: string[];
-}
-
-@ObjectType()
-export class Fe {
-  @Field((type) => Int!)
-  fea!: number;
-
-  @Field((type) => [Int!]!)
-  feb!: number[];
-
-  @Field((type) => [Fec!]!)
-  fec!: Fec[];
-}
-
-@ObjectType()
-export class F {
-  @Field((type) => Int, { nullable: true })
-  fa?: number;
-
-  @Field((type) => Int, { nullable: true })
-  fb?: number;
-
-  @Field((type) => Int, { nullable: true })
-  fc?: number;
-
-  @Field((type) => [Int!], { nullable: true })
-  fd?: number[];
-
-  @Field((type) => [Ff!], { nullable: true })
-  ff?: Ff[];
-
-  @Field((type) => Fe, { nullable: true })
-  fe?: Fe;
-}
-
-@ObjectType()
 export class __TMP_CLASS_NAME__ {
   @Field()
   booleanField!: boolean;
@@ -107,18 +11,114 @@ export class __TMP_CLASS_NAME__ {
   @Field()
   stringField!: string;
 
-  @Field((type) => [Int!]!)
+  @Field((type) => [Int]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [MixedField!]!)
-  mixedField!: MixedField[];
+  @Field((type) => [MixedFieldType]!)
+  mixedField!: MixedFieldType[];
 
-  @Field((type) => [EmptyArrayField!]!)
-  emptyArrayField!: EmptyArrayField[];
+  @Field((type) => [EmptyArrayFieldType!]!)
+  emptyArrayField!: EmptyArrayFieldType[];
 
-  @Field((type) => NestedField!)
-  nestedField!: NestedField;
+  @Field((type) => NestedFieldType!)
+  nestedField!: NestedFieldType;
 
-  @Field((type) => [F!]!)
-  f!: F[];
+  @Field((type) => [FType]!)
+  f!: FType[];
+}
+
+@ObjectType()
+export class MixedFieldType {
+  @Field()
+  a!: string;
+}
+
+@ObjectType()
+export class EmptyArrayFieldType {}
+
+@ObjectType()
+export class NestedFieldType {
+  @Field()
+  booleanField!: boolean;
+
+  @Field((type) => Int!)
+  numberField!: number;
+
+  @Field()
+  stringField!: string;
+
+  @Field((type) => [Int]!)
+  primitiveArrayField!: number[];
+
+  @Field((type) => [MixedFieldrsType]!)
+  mixedFieldrs!: MixedFieldrsType[];
+}
+
+@ObjectType()
+export class MixedFieldrsType {
+  @Field()
+  b!: string;
+
+  @Field((type) => CType!)
+  c!: CType;
+}
+
+@ObjectType()
+export class CType {
+  @Field((type) => MixedField1Type!)
+  mixedField1!: MixedField1Type;
+}
+
+@ObjectType()
+export class MixedField1Type {
+  @Field()
+  a111!: string;
+}
+
+@ObjectType()
+export class FType {
+  @Field((type) => Int, { nullable: true })
+  fa?: number;
+
+  @Field((type) => Int, { nullable: true })
+  fb?: number;
+
+  @Field((type) => Int, { nullable: true })
+  fc?: number;
+
+  @Field((type) => [Int], { nullable: true })
+  fd?: number[];
+
+  @Field((type) => [FfType!], { nullable: true })
+  ff?: FfType[];
+
+  @Field((type) => FeType, { nullable: true })
+  fe?: FeType;
+}
+
+@ObjectType()
+export class FfType {}
+
+@ObjectType()
+export class FeType {
+  @Field((type) => Int!)
+  fea!: number;
+
+  @Field((type) => [Int]!)
+  feb!: number[];
+
+  @Field((type) => [FecType]!)
+  fec!: FecType[];
+}
+
+@ObjectType()
+export class FecType {
+  @Field((type) => Int!)
+  feca!: number;
+
+  @Field()
+  fecb!: boolean;
+
+  @Field()
+  fecc!: string[];
 }

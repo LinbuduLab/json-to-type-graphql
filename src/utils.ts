@@ -22,6 +22,8 @@ export const ARRAY_ENTRY_STRUCTURE_PROP = "data";
 
 export const DEFAULT_ENTRY_CLASS_NAME = "__TMP_CLASS_NAME__";
 
+export const DEFAULT_ENTRY_CLASS_NAME_SUFFIX = "__TMP_CLASS_NAME_TYPE__";
+
 export type PlainObject = Record<string, unknown>;
 
 export type SourceObject = Record<string, ValidPrimitiveType | "object">;
@@ -120,4 +122,22 @@ export function strictTypeChecker(val: unknown): ValidFieldType {
   if (typeof val === "object") return ValidFieldType.Object;
 
   return ValidFieldType.Ignore;
+}
+
+export function normalizeClassFix(
+  fix: string | boolean,
+  fallback: string
+): string {
+  return fix ? (typeof fix === "string" ? fix : fallback) : "";
+}
+
+export function normalizeTypeFix(fix: string, type: ValidFieldType): string {
+  return [
+    ValidFieldType.Boolean,
+    ValidFieldType.String,
+    ValidFieldType.Number,
+    ValidFieldType.Primitive_Array,
+  ].includes(type)
+    ? ""
+    : capitalCase(fix);
 }

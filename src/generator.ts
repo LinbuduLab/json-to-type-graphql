@@ -9,11 +9,15 @@ import type {
 import {
   capitalCase,
   DEFAULT_ENTRY_CLASS_NAME,
+  normalizeClassFix,
+  normalizeTypeFix,
+} from "./utils";
+import type {
+  ProcessedFieldInfoObject,
+  ClassGeneratorRecord,
   GeneratorOptions,
   RecordValue,
-  ValidFieldType,
 } from "./utils";
-import type { ProcessedFieldInfoObject, ClassGeneratorRecord } from "./utils";
 
 import {
   addImportDeclaration,
@@ -68,40 +72,29 @@ export function collectClassStruInfo(
   ];
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
-  for (const [, v] of Object.entries(parsed)) {
-    const classPrefix = prefix
-      ? typeof prefix === "string"
-        ? prefix
-        : entryClassName
-      : "";
+  const classPrefix = normalizeClassFix(prefix, entryClassName);
+  const classSuffix = normalizeClassFix(suffix, "Type");
 
-    const typePrefix = prefix
-      ? [
-          ValidFieldType.Boolean,
-          ValidFieldType.String,
-          ValidFieldType.Number,
-          ValidFieldType.Primitive_Array,
-        ].includes(v.type)
-        ? ""
-        : `${capitalCase(classPrefix)}`
-      : "";
+  for (const [, v] of Object.entries(parsed)) {
+    const typePrefix = normalizeTypeFix(classPrefix, v.type);
+    const typeSuffix = normalizeTypeFix(classSuffix, v.type);
 
     if (v.nested) {
       collectClassStruInfo(source, v.fields!, record, entryClassName, {
         ...options,
-        entryClassName: `${classPrefix}${v.propType}`,
+        entryClassName: `${classPrefix}${v.propType}${typeSuffix}`,
       });
     }
 
     const fieldReturnType: string[] = v.decoratorReturnType
       ? v.list
         ? [
-            `(type) => [${typePrefix}${v.decoratorReturnType}${
+            `(type) => [${typePrefix}${v.decoratorReturnType}${typeSuffix}${
               v.nullableListItem ? "" : "!"
             }]${v.nullable ? "" : "!"}`,
           ]
         : [
-            `(type) => ${typePrefix}${v.decoratorReturnType}${
+            `(type) => ${typePrefix}${v.decoratorReturnType}${typeSuffix}${
               v.nullable ? "" : "!"
             }`,
           ]
@@ -112,8 +105,8 @@ export function collectClassStruInfo(
     properties.push({
       name: v.prop,
       type: v.list
-        ? `${typePrefix}${v.propType}[]`
-        : `${typePrefix}${v.propType as string}`,
+        ? `${typePrefix}${v.propType}${typeSuffix}[]`
+        : `${typePrefix}${v.propType as string}${typeSuffix}`,
       decorators: [
         {
           name: "Field",
@@ -143,8 +136,7 @@ export function collectClassStruInfo(
     generated: false,
   };
 
-  // record[entryClassName] = currentRecord;
-  source.addClass(currentRecord.info);
+  record[entryClassName] = currentRecord;
 }
 
 export function reverseRelation(raw: ClassGeneratorRecord) {

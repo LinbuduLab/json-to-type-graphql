@@ -10,12 +10,13 @@ transformer(content, outputPath, {
   parser: {
     // forceNonNullable: true,
     // forceReturnType: true,
-    forceNonNullableListItem: true,
+    // forceNonNullableListItem: true,
   },
   preprocesser: {
     preserveObjectOnlyInArray: true,
   },
   generator: {
     prefix: false,
+    suffix: true,
   },
 });
