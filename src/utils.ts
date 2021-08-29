@@ -32,6 +32,7 @@ export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
 
 export type ParserOptions = {
   forceNonNullable: boolean;
+  forceNonNullableListItem: boolean;
   forceReturnType: boolean;
   arrayEntryProp: string;
 };
@@ -69,6 +70,7 @@ export type ParsedFieldInfo = {
   decoratorReturnType: string | null;
   fields: ProcessedFieldInfoObject | null;
   shared?: boolean;
+  nullableListItem?: boolean;
 };
 
 export type ProcessedFieldInfoObject = Record<string, ParsedFieldInfo>;

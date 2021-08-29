@@ -13,17 +13,12 @@ import {
   RecordValue,
   ValidFieldType,
 } from "./utils";
-import type {
-  ProcessedFieldInfoObject,
-  Options,
-  ClassGeneratorRecord,
-} from "./utils";
+import type { ProcessedFieldInfoObject, ClassGeneratorRecord } from "./utils";
 
 import {
   addImportDeclaration,
   ImportType,
   invokeClassDeclarationGenerator,
-  checkExistClassDeclarations,
 } from "./ast";
 
 export function generator(
@@ -97,8 +92,16 @@ export function collectClassStruInfo(
 
     const fieldReturnType: string[] = v.decoratorReturnType
       ? v.list
-        ? [`(type) => [${returned}${v.decoratorReturnType}]`]
-        : [`(type) => ${returned}${v.decoratorReturnType}`]
+        ? [
+            `(type) => [${returned}${v.decoratorReturnType}${
+              v.nullableListItem ? "" : "!"
+            }]${v.nullable ? "" : "!"}`,
+          ]
+        : [
+            `(type) => ${returned}${v.decoratorReturnType}${
+              v.nullable ? "" : "!"
+            }`,
+          ]
       : [];
 
     if (v.nullable) fieldReturnType.push(`{ nullable: true }`);

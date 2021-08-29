@@ -19,3 +19,5 @@
 - postprocesser -> 检查装饰器、额外的操作
 - 支持在 pre/post processer 阶段进行额外的处理
 - 只有最外层的几个 用 or 的命名
+- 生成最后一个，再。。
+- forceNonNullListItem

@@ -24,7 +24,12 @@ export function arrayEntryParser(
   content: SourceObject[] | ValidPrimitiveType[],
   options: ParserOptions
 ): ProcessedFieldInfoObject {
-  const { forceNonNullable, forceReturnType, arrayEntryProp } = options;
+  const {
+    forceNonNullable,
+    forceReturnType,
+    arrayEntryProp,
+    forceNonNullableListItem,
+  } = options;
   const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
   if (!content.length) return {};
@@ -96,7 +101,8 @@ export function objectEntryParser(
   content: SourceObject | SourceObject[] | ValidPrimitiveType[],
   options: ParserOptions
 ): ProcessedFieldInfoObject {
-  const { forceNonNullable, forceReturnType } = options;
+  const { forceNonNullable, forceReturnType, forceNonNullableListItem } =
+    options;
   const parsedFieldInfo: ProcessedFieldInfoObject = {};
 
   for (const [k, v] of Object.entries(content)) {
@@ -169,6 +175,7 @@ export function objectEntryParser(
           prop: k,
           nullable: false,
           fields: null,
+          nullableListItem: !forceNonNullableListItem,
           decoratorReturnType:
             typeof v[0] === "number"
               ? "Int"
@@ -186,6 +193,7 @@ export function objectEntryParser(
           decoratorReturnType: capitalCasedKey,
           nested: true,
           nullable: false,
+          nullableListItem: !forceNonNullableListItem,
           prop: k,
           fields: objectArrayParser(v as unknown as PlainObject[], options),
         };

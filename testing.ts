@@ -17,7 +17,7 @@ export class TmpClassNameNestedFieldMixedFieldCMixedField {
 
 @ObjectType()
 export class TmpClassNameNestedFieldMixedFieldC {
-  @Field((type) => TmpClassNameNestedFieldMixedFieldCMixedField)
+  @Field((type) => TmpClassNameNestedFieldMixedFieldCMixedField!)
   mixedField!: TmpClassNameNestedFieldMixedFieldCMixedField;
 }
 
@@ -26,7 +26,7 @@ export class TmpClassNameNestedFieldMixedField {
   @Field()
   b!: string;
 
-  @Field((type) => TmpClassNameNestedFieldMixedFieldC)
+  @Field((type) => TmpClassNameNestedFieldMixedFieldC!)
   c!: TmpClassNameNestedFieldMixedFieldC;
 }
 
@@ -35,16 +35,16 @@ export class TmpClassNameNestedField {
   @Field()
   booleanField!: boolean;
 
-  @Field((type) => Int)
+  @Field((type) => Int!)
   numberField!: number;
 
   @Field()
   stringField!: string;
 
-  @Field((type) => [Int])
+  @Field((type) => [Int!]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [TmpClassNameNestedFieldMixedField])
+  @Field((type) => [TmpClassNameNestedFieldMixedField!]!)
   mixedField!: TmpClassNameNestedFieldMixedField[];
 }
 
@@ -53,7 +53,7 @@ export class TmpClassNameFFf {}
 
 @ObjectType()
 export class TmpClassNameFFeFec {
-  @Field((type) => Int)
+  @Field((type) => Int!)
   feca!: number;
 
   @Field()
@@ -65,13 +65,13 @@ export class TmpClassNameFFeFec {
 
 @ObjectType()
 export class TmpClassNameFFe {
-  @Field((type) => Int)
+  @Field((type) => Int!)
   fea!: number;
 
-  @Field((type) => [Int])
+  @Field((type) => [Int!]!)
   feb!: number[];
 
-  @Field((type) => [TmpClassNameFFeFec])
+  @Field((type) => [TmpClassNameFFeFec!]!)
   fec!: TmpClassNameFFeFec[];
 }
 
@@ -86,10 +86,10 @@ export class TmpClassNameF {
   @Field((type) => Int, { nullable: true })
   fc?: number;
 
-  @Field((type) => [Int], { nullable: true })
+  @Field((type) => [Int!], { nullable: true })
   fd?: number[];
 
-  @Field((type) => [TmpClassNameFFf], { nullable: true })
+  @Field((type) => [TmpClassNameFFf!], { nullable: true })
   ff?: TmpClassNameFFf[];
 
   @Field((type) => TmpClassNameFFe, { nullable: true })
@@ -101,24 +101,24 @@ export class __TMP_CLASS_NAME__ {
   @Field()
   booleanField!: boolean;
 
-  @Field((type) => Int)
+  @Field((type) => Int!)
   numberField!: number;
 
   @Field()
   stringField!: string;
 
-  @Field((type) => [Int])
+  @Field((type) => [Int!]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [TmpClassNameMixedField])
+  @Field((type) => [TmpClassNameMixedField!]!)
   mixedField!: TmpClassNameMixedField[];
 
-  @Field((type) => [TmpClassNameEmptyArrayField])
+  @Field((type) => [TmpClassNameEmptyArrayField!]!)
   emptyArrayField!: TmpClassNameEmptyArrayField[];
 
-  @Field((type) => TmpClassNameNestedField)
+  @Field((type) => TmpClassNameNestedField!)
   nestedField!: TmpClassNameNestedField;
 
-  @Field((type) => [TmpClassNameF])
+  @Field((type) => [TmpClassNameF!]!)
   f!: TmpClassNameF[];
 }

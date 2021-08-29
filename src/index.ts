@@ -23,6 +23,7 @@ export default function handler(
     forceNonNullable = false,
     forceReturnType = false,
     arrayEntryProp = ARRAY_ENTRY_STRUCTURE_PROP,
+    forceNonNullableListItem = false,
   } = options?.parser ?? {};
 
   const {
@@ -43,6 +44,7 @@ export default function handler(
     forceNonNullable,
     forceReturnType,
     arrayEntryProp,
+    forceNonNullableListItem,
   });
 
   // console.log("parsedInfo: ", util.inspect(parsedInfo, { depth: 99 }));
