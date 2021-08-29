@@ -14,4 +14,7 @@ transformer(content, outputPath, {
   preprocesser: {
     preserveObjectOnlyInArray: true,
   },
+  generator: {
+    prefix: true,
+  },
 });

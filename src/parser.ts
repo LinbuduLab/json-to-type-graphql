@@ -201,8 +201,6 @@ export function objectEntryParser(
   return parsedFieldInfo;
 }
 
-// handle [[],[]]
-//
 export function objectArrayParser<T extends PlainObject>(
   arr: T[],
   options: ParserOptions

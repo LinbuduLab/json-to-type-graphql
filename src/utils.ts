@@ -38,6 +38,7 @@ export type ParserOptions = {
 
 export type GeneratorOptions = {
   entryClassName: string;
+  prefix: boolean | string;
   suffix: boolean | string;
   publicProps: string[];
   readonlyProps: string[];

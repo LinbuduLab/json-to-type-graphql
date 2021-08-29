@@ -6,7 +6,13 @@ import type {
   OptionalKind,
 } from "ts-morph";
 
-import { capitalCase, DEFAULT_ENTRY_CLASS_NAME, RecordValue } from "./utils";
+import {
+  capitalCase,
+  DEFAULT_ENTRY_CLASS_NAME,
+  GeneratorOptions,
+  RecordValue,
+  ValidFieldType,
+} from "./utils";
 import type {
   ProcessedFieldInfoObject,
   Options,
@@ -17,12 +23,13 @@ import {
   addImportDeclaration,
   ImportType,
   invokeClassDeclarationGenerator,
+  checkExistClassDeclarations,
 } from "./ast";
 
 export function generator(
   parsed: ProcessedFieldInfoObject,
   outputPath: string,
-  options?: Options["generator"]
+  options: GeneratorOptions
 ) {
   const source = new Project().addSourceFileAtPath(outputPath);
   const classGeneratorRecord: ClassGeneratorRecord = {};
@@ -35,7 +42,7 @@ export function generator(
     false
   );
 
-  classDecInfoCollector(
+  collectClassStruInfo(
     source,
     parsed,
     classGeneratorRecord,
@@ -43,24 +50,20 @@ export function generator(
     options
   );
 
-  const finalRecord = reverseRelation(classGeneratorRecord);
+  reverseRelation(classGeneratorRecord);
 
-  invokeClassDeclarationGenerator(source, finalRecord, true);
+  invokeClassDeclarationGenerator(source, classGeneratorRecord, true);
 }
 
-export function classDecInfoCollector(
+export function collectClassStruInfo(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
   record: ClassGeneratorRecord,
-  parent?: string,
-  options?: Options["generator"]
+  parent: string | undefined,
+  options: GeneratorOptions
 ): void {
-  const {
-    entryClassName = DEFAULT_ENTRY_CLASS_NAME,
-    publicProps = [],
-    readonlyProps = [],
-    suffix = false,
-  } = options ?? {};
+  const { entryClassName, publicProps, readonlyProps, suffix, prefix } =
+    options;
 
   const classDecorator: OptionalKind<DecoratorStructure>[] = [
     {
@@ -71,27 +74,40 @@ export function classDecInfoCollector(
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
   for (const [, v] of Object.entries(parsed)) {
-    if (v.nested)
-      classDecInfoCollector(source, v.fields!, record, entryClassName, {
-        entryClassName: v.propType,
-        publicProps,
-        readonlyProps,
-        suffix,
+    if (v.nested) {
+      collectClassStruInfo(source, v.fields!, record, entryClassName, {
+        ...options,
+        entryClassName: prefix ? `${entryClassName}${v.propType}` : v.propType,
       });
+    }
 
     // nullable 为 false 时 [Type]!
     // [Type!] 则由选项控制
+
+    const returned = prefix
+      ? [
+          ValidFieldType.Boolean,
+          ValidFieldType.String,
+          ValidFieldType.Number,
+          ValidFieldType.Primitive_Array,
+        ].includes(v.type)
+        ? ""
+        : `${capitalCase(entryClassName)}`
+      : "";
+
     const fieldReturnType: string[] = v.decoratorReturnType
       ? v.list
-        ? [`(type) => [${v.decoratorReturnType}]`]
-        : [`(type) => ${v.decoratorReturnType}`]
+        ? [`(type) => [${returned}${v.decoratorReturnType}]`]
+        : [`(type) => ${returned}${v.decoratorReturnType}`]
       : [];
 
     if (v.nullable) fieldReturnType.push(`{ nullable: true }`);
 
     properties.push({
       name: v.prop,
-      type: v.list ? `${v.propType}[]` : (v.propType as string),
+      type: v.list
+        ? `${returned}${v.propType}[]`
+        : `${returned}${v.propType as string}`,
       decorators: [
         {
           name: "Field",
@@ -121,21 +137,18 @@ export function classDecInfoCollector(
     generated: false,
   };
 
-  record[entryClassName] = currentRecord;
+  // record[entryClassName] = currentRecord;
+  source.addClass(currentRecord.info);
 }
 
 export function reverseRelation(raw: ClassGeneratorRecord) {
-  const reversed: ClassGeneratorRecord = {};
-
   for (const [k, v] of Object.entries(raw)) {
-    reversed[k] = v;
+    raw[k] = v;
   }
 
   for (const [k, v] of Object.entries(raw)) {
     if (v.parent) {
-      reversed[v.parent]["children"].push(k);
+      raw[v.parent]["children"].push(k);
     }
   }
-
-  return reversed;
 }

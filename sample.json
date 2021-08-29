@@ -16,11 +16,16 @@
     "numberField": 200,
     "stringField": "success",
     "primitiveArrayField": [1, 2, 3, 4, 5],
-    "mixedNestedField": [
+    "mixedField": [
       1,
       2,
       {
-        "a": "1111111"
+        "b": "1111111",
+        "c": {
+          "mixedField": {
+            "a111": "111"
+          }
+        }
       }
     ]
   },
