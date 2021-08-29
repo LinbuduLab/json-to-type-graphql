@@ -69,17 +69,13 @@ export function collectClassStruInfo(
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
   for (const [, v] of Object.entries(parsed)) {
-    if (v.nested) {
-      collectClassStruInfo(source, v.fields!, record, entryClassName, {
-        ...options,
-        entryClassName: prefix ? `${entryClassName}${v.propType}` : v.propType,
-      });
-    }
+    const classPrefix = prefix
+      ? typeof prefix === "string"
+        ? prefix
+        : entryClassName
+      : "";
 
-    // nullable 为 false 时 [Type]!
-    // [Type!] 则由选项控制
-
-    const returned = prefix
+    const typePrefix = prefix
       ? [
           ValidFieldType.Boolean,
           ValidFieldType.String,
@@ -87,18 +83,25 @@ export function collectClassStruInfo(
           ValidFieldType.Primitive_Array,
         ].includes(v.type)
         ? ""
-        : `${capitalCase(entryClassName)}`
+        : `${capitalCase(classPrefix)}`
       : "";
+
+    if (v.nested) {
+      collectClassStruInfo(source, v.fields!, record, entryClassName, {
+        ...options,
+        entryClassName: `${classPrefix}${v.propType}`,
+      });
+    }
 
     const fieldReturnType: string[] = v.decoratorReturnType
       ? v.list
         ? [
-            `(type) => [${returned}${v.decoratorReturnType}${
+            `(type) => [${typePrefix}${v.decoratorReturnType}${
               v.nullableListItem ? "" : "!"
             }]${v.nullable ? "" : "!"}`,
           ]
         : [
-            `(type) => ${returned}${v.decoratorReturnType}${
+            `(type) => ${typePrefix}${v.decoratorReturnType}${
               v.nullable ? "" : "!"
             }`,
           ]
@@ -109,8 +112,8 @@ export function collectClassStruInfo(
     properties.push({
       name: v.prop,
       type: v.list
-        ? `${returned}${v.propType}[]`
-        : `${returned}${v.propType as string}`,
+        ? `${typePrefix}${v.propType}[]`
+        : `${typePrefix}${v.propType as string}`,
       decorators: [
         {
           name: "Field",

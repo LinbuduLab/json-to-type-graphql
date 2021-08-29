@@ -1,37 +1,37 @@
 import { ObjectType, Field, Int, ID } from "type-graphql";
 
 @ObjectType()
-export class TmpClassNameMixedField {
+export class MixedField {
   @Field()
   a!: string;
 }
 
 @ObjectType()
-export class TmpClassNameEmptyArrayField {}
+export class EmptyArrayField {}
 
 @ObjectType()
-export class TmpClassNameNestedFieldMixedFieldCMixedField {
+export class MixedField1 {
   @Field()
   a111!: string;
 }
 
 @ObjectType()
-export class TmpClassNameNestedFieldMixedFieldC {
-  @Field((type) => TmpClassNameNestedFieldMixedFieldCMixedField!)
-  mixedField!: TmpClassNameNestedFieldMixedFieldCMixedField;
+export class C {
+  @Field((type) => MixedField1!)
+  mixedField1!: MixedField1;
 }
 
 @ObjectType()
-export class TmpClassNameNestedFieldMixedField {
+export class MixedFieldrs {
   @Field()
   b!: string;
 
-  @Field((type) => TmpClassNameNestedFieldMixedFieldC!)
-  c!: TmpClassNameNestedFieldMixedFieldC;
+  @Field((type) => C!)
+  c!: C;
 }
 
 @ObjectType()
-export class TmpClassNameNestedField {
+export class NestedField {
   @Field()
   booleanField!: boolean;
 
@@ -44,15 +44,15 @@ export class TmpClassNameNestedField {
   @Field((type) => [Int!]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [TmpClassNameNestedFieldMixedField!]!)
-  mixedField!: TmpClassNameNestedFieldMixedField[];
+  @Field((type) => [MixedFieldrs!]!)
+  mixedFieldrs!: MixedFieldrs[];
 }
 
 @ObjectType()
-export class TmpClassNameFFf {}
+export class Ff {}
 
 @ObjectType()
-export class TmpClassNameFFeFec {
+export class Fec {
   @Field((type) => Int!)
   feca!: number;
 
@@ -64,19 +64,19 @@ export class TmpClassNameFFeFec {
 }
 
 @ObjectType()
-export class TmpClassNameFFe {
+export class Fe {
   @Field((type) => Int!)
   fea!: number;
 
   @Field((type) => [Int!]!)
   feb!: number[];
 
-  @Field((type) => [TmpClassNameFFeFec!]!)
-  fec!: TmpClassNameFFeFec[];
+  @Field((type) => [Fec!]!)
+  fec!: Fec[];
 }
 
 @ObjectType()
-export class TmpClassNameF {
+export class F {
   @Field((type) => Int, { nullable: true })
   fa?: number;
 
@@ -89,11 +89,11 @@ export class TmpClassNameF {
   @Field((type) => [Int!], { nullable: true })
   fd?: number[];
 
-  @Field((type) => [TmpClassNameFFf!], { nullable: true })
-  ff?: TmpClassNameFFf[];
+  @Field((type) => [Ff!], { nullable: true })
+  ff?: Ff[];
 
-  @Field((type) => TmpClassNameFFe, { nullable: true })
-  fe?: TmpClassNameFFe;
+  @Field((type) => Fe, { nullable: true })
+  fe?: Fe;
 }
 
 @ObjectType()
@@ -110,15 +110,15 @@ export class __TMP_CLASS_NAME__ {
   @Field((type) => [Int!]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [TmpClassNameMixedField!]!)
-  mixedField!: TmpClassNameMixedField[];
+  @Field((type) => [MixedField!]!)
+  mixedField!: MixedField[];
 
-  @Field((type) => [TmpClassNameEmptyArrayField!]!)
-  emptyArrayField!: TmpClassNameEmptyArrayField[];
+  @Field((type) => [EmptyArrayField!]!)
+  emptyArrayField!: EmptyArrayField[];
 
-  @Field((type) => TmpClassNameNestedField!)
-  nestedField!: TmpClassNameNestedField;
+  @Field((type) => NestedField!)
+  nestedField!: NestedField;
 
-  @Field((type) => [TmpClassNameF!]!)
-  f!: TmpClassNameF[];
+  @Field((type) => [F!]!)
+  f!: F[];
 }

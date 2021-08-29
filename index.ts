@@ -16,6 +16,6 @@ transformer(content, outputPath, {
     preserveObjectOnlyInArray: true,
   },
   generator: {
-    prefix: true,
+    prefix: false,
   },
 });
