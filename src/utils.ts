@@ -24,13 +24,26 @@ export const DEFAULT_ENTRY_CLASS_NAME = "__TMP_CLASS_NAME__";
 
 export const DEFAULT_ENTRY_CLASS_NAME_SUFFIX = "__TMP_CLASS_NAME_TYPE__";
 
-export type PlainObject = Record<string, unknown>;
+export const DEFAULT_SUFFIX = "Type";
 
-export type SourceObject = Record<string, ValidPrimitiveType | "object">;
+export type SourceObject = Record<string, any>;
+
+export type SourceArray = Array<string | boolean | number | SourceObject>;
 
 export type ValidPrimitiveType = "string" | "number" | "boolean";
 
 export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
+
+export type PreprocesserOptions = {
+  preserveObjectOnlyInArray?: boolean;
+};
+
+export type Options = {
+  preprocesser?: Partial<PreprocesserOptions>;
+  parser?: Partial<ParserOptions>;
+  generator?: Partial<GeneratorOptions>;
+  formatter?: Partial<FormatterOptions>;
+};
 
 export type ParserOptions = {
   forceNonNullable: boolean;
@@ -50,17 +63,6 @@ export type GeneratorOptions = {
 export type FormatterOptions = {
   disable: boolean;
 } & PrettierOptions;
-
-export type PreprocesserOptions = {
-  preserveObjectOnlyInArray?: boolean;
-};
-
-export type Options = {
-  preprocesser?: Partial<PreprocesserOptions>;
-  parser?: Partial<ParserOptions>;
-  generator?: Partial<GeneratorOptions>;
-  formatter?: Partial<FormatterOptions>;
-};
 
 export type ParsedFieldInfo = {
   type: ValidFieldType;

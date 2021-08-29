@@ -1,8 +1,10 @@
 import prettier from "prettier";
 import fs from "fs-extra";
-import type { Options } from "./utils";
+import type { FormatterOptions } from "./utils";
 
-export function formatter(outputPath: string, options?: Options["formatter"]) {
+export function formatter(outputPath: string, options: FormatterOptions) {
+  if (options.disable) return;
+
   const formatted = prettier.format(fs.readFileSync(outputPath, "utf-8"), {
     parser: "typescript",
     tabWidth: 2,

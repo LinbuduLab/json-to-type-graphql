@@ -9,6 +9,7 @@ import type {
 import {
   capitalCase,
   DEFAULT_ENTRY_CLASS_NAME,
+  DEFAULT_SUFFIX,
   normalizeClassFix,
   normalizeTypeFix,
 } from "./utils";
@@ -73,11 +74,17 @@ export function collectClassStruInfo(
   const properties: OptionalKind<PropertyDeclarationStructure>[] = [];
 
   const classPrefix = normalizeClassFix(prefix, entryClassName);
-  const classSuffix = normalizeClassFix(suffix, "Type");
+  const classSuffix = normalizeClassFix(suffix, DEFAULT_SUFFIX);
 
   for (const [, v] of Object.entries(parsed)) {
     const typePrefix = normalizeTypeFix(classPrefix, v.type);
     const typeSuffix = normalizeTypeFix(classSuffix, v.type);
+
+    const propType = `${typePrefix}${v.propType}${typeSuffix}${
+      v.list ? "[]" : ""
+    }`;
+
+    const returnType = `${typePrefix}${v.decoratorReturnType}${typeSuffix}`;
 
     if (v.nested) {
       collectClassStruInfo(source, v.fields!, record, entryClassName, {
@@ -89,24 +96,18 @@ export function collectClassStruInfo(
     const fieldReturnType: string[] = v.decoratorReturnType
       ? v.list
         ? [
-            `(type) => [${typePrefix}${v.decoratorReturnType}${typeSuffix}${
-              v.nullableListItem ? "" : "!"
-            }]${v.nullable ? "" : "!"}`,
-          ]
-        : [
-            `(type) => ${typePrefix}${v.decoratorReturnType}${typeSuffix}${
+            `(type) => [${returnType}${v.nullableListItem ? "" : "!"}]${
               v.nullable ? "" : "!"
             }`,
           ]
+        : [`(type) => ${returnType}${v.nullable ? "" : "!"}`]
       : [];
 
     if (v.nullable) fieldReturnType.push(`{ nullable: true }`);
 
     properties.push({
       name: v.prop,
-      type: v.list
-        ? `${typePrefix}${v.propType}${typeSuffix}[]`
-        : `${typePrefix}${v.propType as string}${typeSuffix}`,
+      type: propType,
       decorators: [
         {
           name: "Field",
@@ -137,6 +138,7 @@ export function collectClassStruInfo(
   };
 
   record[entryClassName] = currentRecord;
+  // source.addClass(currentRecord.info);
 }
 
 export function reverseRelation(raw: ClassGeneratorRecord) {

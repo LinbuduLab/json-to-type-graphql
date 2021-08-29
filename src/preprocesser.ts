@@ -1,9 +1,9 @@
 import { strictTypeChecker, ValidFieldType } from "./utils";
 
-import type { SourceObject, PreprocesserOptions } from "./utils";
+import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
 
 export function preprocesser(
-  raw: SourceObject | SourceObject[],
+  raw: SourceObject | SourceObject[] | SourceArray,
   options: PreprocesserOptions
 ): SourceObject | SourceObject[] {
   const { preserveObjectOnlyInArray } = options;
@@ -16,19 +16,19 @@ export function preprocesser(
       v.length && Array.isArray(v[0])
         ? // delete nested array directly at first
           delete raw[k]
-        : (raw[k] = preprocesser(v, options) as unknown as "object");
+        : (raw[k] = preprocesser(v, options));
     }
 
     if (strictTypeChecker(v) === ValidFieldType.Object) {
-      preprocesser(v as unknown as SourceObject, options);
+      preprocesser(v, options);
     }
   }
 
   return raw;
 }
 
-export function arrayPreprocesser<T extends SourceObject>(
-  raw: T[],
+export function arrayPreprocesser(
+  raw: SourceArray,
   { preserveObjectOnlyInArray }: PreprocesserOptions
 ) {
   if (!raw.length) return raw;
@@ -43,13 +43,13 @@ export function arrayPreprocesser<T extends SourceObject>(
 }
 
 type ShouldProcessResult = {
-  primitives: SourceObject[];
+  primitives: SourceArray;
   objects: SourceObject[];
   shouldApplyProcess: boolean;
 };
 
-export function shouldProcess<T extends SourceObject>(
-  arr: T[]
+export function shouldProcess(
+  arr: SourceArray | SourceObject[]
 ): ShouldProcessResult {
   const primitives = preservePrimitiveTypeInArrayOnly(arr);
 
@@ -62,15 +62,17 @@ export function shouldProcess<T extends SourceObject>(
   };
 }
 
-export function preserveObjectTypeInArrayOnly<T extends SourceObject>(
-  arr: T[]
+export function preserveObjectTypeInArrayOnly(
+  arr: SourceArray
 ): SourceObject[] {
-  return arr.filter((val) => strictTypeChecker(val) === ValidFieldType.Object);
+  return arr.filter(
+    (val) => strictTypeChecker(val) === ValidFieldType.Object
+  ) as SourceObject[];
 }
 
-export function preservePrimitiveTypeInArrayOnly<T extends SourceObject>(
-  arr: T[]
-): SourceObject[] {
+export function preservePrimitiveTypeInArrayOnly(
+  arr: SourceArray
+): SourceArray {
   return arr.filter((val) =>
     [
       ValidFieldType.Number,

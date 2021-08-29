@@ -4,15 +4,14 @@ import uniqBy from "lodash/uniqBy";
 import { strictTypeChecker, capitalCase, ValidFieldType } from "./utils";
 import type {
   SourceObject,
-  ValidPrimitiveType,
+  SourceArray,
   ProcessedFieldInfoObject,
   ParsedFieldInfo,
   ParserOptions,
-  PlainObject,
 } from "./utils";
 
 export function parser(
-  content: SourceObject | SourceObject[] | ValidPrimitiveType[],
+  content: SourceObject | SourceArray,
   options: Required<ParserOptions>
 ): ProcessedFieldInfoObject {
   return Array.isArray(content)
@@ -21,7 +20,7 @@ export function parser(
 }
 
 export function arrayEntryParser(
-  content: SourceObject[] | ValidPrimitiveType[],
+  content: SourceArray,
   options: ParserOptions
 ): ProcessedFieldInfoObject {
   const {
@@ -98,7 +97,7 @@ export function arrayEntryParser(
 }
 
 export function objectEntryParser(
-  content: SourceObject | SourceObject[] | ValidPrimitiveType[],
+  content: SourceObject | SourceArray,
   options: ParserOptions
 ): ProcessedFieldInfoObject {
   const { forceNonNullable, forceReturnType, forceNonNullableListItem } =
@@ -148,7 +147,7 @@ export function objectEntryParser(
           prop: k,
           nullable: false,
           decoratorReturnType: capitalCasedKey,
-          fields: parser(v as unknown as SourceObject, options),
+          fields: parser(v, options),
         };
 
         break;
@@ -195,7 +194,7 @@ export function objectEntryParser(
           nullable: false,
           nullableListItem: !forceNonNullableListItem,
           prop: k,
-          fields: objectArrayParser(v as unknown as PlainObject[], options),
+          fields: objectArrayParser(v, options),
         };
         break;
 
@@ -209,8 +208,8 @@ export function objectEntryParser(
   return parsedFieldInfo;
 }
 
-export function objectArrayParser<T extends PlainObject>(
-  arr: T[],
+export function objectArrayParser(
+  arr: SourceObject[],
   options: ParserOptions
 ): ProcessedFieldInfoObject {
   const keys: string[][] = [];
@@ -232,7 +231,7 @@ export function objectArrayParser<T extends PlainObject>(
     );
 
     parsedKeys.push({
-      ...parser(nonNullSharedItem[0] as SourceObject, options)[key],
+      ...parser(nonNullSharedItem[0], options)[key],
       shared: true,
       nullable: false,
     });
@@ -247,7 +246,7 @@ export function objectArrayParser<T extends PlainObject>(
   for (const item of arr) {
     for (const [k, v] of Object.entries(item)) {
       parsedKeys.push({
-        ...parser({ [k]: v } as SourceObject, options)[k],
+        ...parser({ [k]: v }, options)[k],
         shared: false,
         nullable: !forceNonNullable,
       });

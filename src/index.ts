@@ -47,8 +47,6 @@ export default function handler(
     forceNonNullableListItem,
   });
 
-  // console.log("parsedInfo: ", util.inspect(parsedInfo, { depth: 99 }));
-
   generator(parsedInfo, outputPath, {
     prefix,
     publicProps,
@@ -57,5 +55,5 @@ export default function handler(
     suffix,
   });
 
-  formatter(outputPath, options?.formatter);
+  formatter(outputPath, { disable });
 }

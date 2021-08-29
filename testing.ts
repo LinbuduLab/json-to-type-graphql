@@ -14,30 +14,30 @@ export class __TMP_CLASS_NAME__ {
   @Field((type) => [Int]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [MixedFieldType]!)
-  mixedField!: MixedFieldType[];
+  @Field((type) => [MixedField]!)
+  mixedField!: MixedField[];
 
-  @Field((type) => [EmptyArrayFieldType!]!)
-  emptyArrayField!: EmptyArrayFieldType[];
+  @Field((type) => [EmptyArrayField!]!)
+  emptyArrayField!: EmptyArrayField[];
 
-  @Field((type) => NestedFieldType!)
-  nestedField!: NestedFieldType;
+  @Field((type) => NestedField!)
+  nestedField!: NestedField;
 
-  @Field((type) => [FType]!)
-  f!: FType[];
+  @Field((type) => [F]!)
+  f!: F[];
 }
 
 @ObjectType()
-export class MixedFieldType {
+export class MixedField {
   @Field()
   a!: string;
 }
 
 @ObjectType()
-export class EmptyArrayFieldType {}
+export class EmptyArrayField {}
 
 @ObjectType()
-export class NestedFieldType {
+export class NestedField {
   @Field()
   booleanField!: boolean;
 
@@ -50,33 +50,33 @@ export class NestedFieldType {
   @Field((type) => [Int]!)
   primitiveArrayField!: number[];
 
-  @Field((type) => [MixedFieldrsType]!)
-  mixedFieldrs!: MixedFieldrsType[];
+  @Field((type) => [MixedFieldrs]!)
+  mixedFieldrs!: MixedFieldrs[];
 }
 
 @ObjectType()
-export class MixedFieldrsType {
+export class MixedFieldrs {
   @Field()
   b!: string;
 
-  @Field((type) => CType!)
-  c!: CType;
+  @Field((type) => C!)
+  c!: C;
 }
 
 @ObjectType()
-export class CType {
-  @Field((type) => MixedField1Type!)
-  mixedField1!: MixedField1Type;
+export class C {
+  @Field((type) => MixedField1!)
+  mixedField1!: MixedField1;
 }
 
 @ObjectType()
-export class MixedField1Type {
+export class MixedField1 {
   @Field()
   a111!: string;
 }
 
 @ObjectType()
-export class FType {
+export class F {
   @Field((type) => Int, { nullable: true })
   fa?: number;
 
@@ -89,30 +89,30 @@ export class FType {
   @Field((type) => [Int], { nullable: true })
   fd?: number[];
 
-  @Field((type) => [FfType!], { nullable: true })
-  ff?: FfType[];
+  @Field((type) => [Ff!], { nullable: true })
+  ff?: Ff[];
 
-  @Field((type) => FeType, { nullable: true })
-  fe?: FeType;
+  @Field((type) => Fe, { nullable: true })
+  fe?: Fe;
 }
 
 @ObjectType()
-export class FfType {}
+export class Ff {}
 
 @ObjectType()
-export class FeType {
+export class Fe {
   @Field((type) => Int!)
   fea!: number;
 
   @Field((type) => [Int]!)
   feb!: number[];
 
-  @Field((type) => [FecType]!)
-  fec!: FecType[];
+  @Field((type) => [Fec]!)
+  fec!: Fec[];
 }
 
 @ObjectType()
-export class FecType {
+export class Fec {
   @Field((type) => Int!)
   feca!: number;
 

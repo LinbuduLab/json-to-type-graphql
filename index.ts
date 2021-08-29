@@ -17,6 +17,6 @@ transformer(content, outputPath, {
   },
   generator: {
     prefix: false,
-    suffix: true,
+    suffix: false,
   },
 });
