@@ -1,8 +1,28 @@
 # json-type-graphql
 
+> This project is still under heavy development, the documentation is far from ready, but basic features are already supported:
+>
+> - Nest object type generation
+> - Normal generator order as `P-c1-C11-C12-c2-C21-C3-C31`
+> - Customizable preprocesser
+> - Control prop scope / readonly / optional
+> - ...
+
+## Start
+
+```bash
+npm i json-type-graphql --save
+yarn add json-type-graphql --save
+pnpm i json-type-graphql --save
+```
+
+
+
+## Example
+
 Generate TypeGraphQL class from JSON object:
 
-> Using [demo.ts](demo.ts) & [demo.json](demo.json):
+> Run `yarn dev` or `yarn demo` to explore! 
 
 JSON:
 
