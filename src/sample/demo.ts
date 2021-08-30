@@ -9,11 +9,13 @@ const content = jsonfile.readFileSync(path.join(__dirname, "./demo.json"));
 
 fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
-transformer(outputPath, {
-  reader: { path: path.join(__dirname, "./demo.json") },
-  // reader: { url: "https://dog.ceo/api/breeds/image/random" },
-  parser: {
-    forceNonNullableListItem: true,
-  },
-  generator: { entryClassName: "Root" },
-});
+(async () => {
+  await transformer(outputPath, {
+    // reader: { path: path.join(__dirname, "./demo.json") },
+    reader: { url: "https://dog.ceo/api/breeds/image/random" },
+    parser: {
+      forceNonNullableListItem: true,
+    },
+    generator: { entryClassName: "Root" },
+  });
+})();

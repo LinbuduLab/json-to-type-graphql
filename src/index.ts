@@ -20,8 +20,6 @@ export default async function handler(
   outputPath: string,
   options: Options
 ): Promise<void> {
-  fs.createFileSync(outputPath);
-
   const content = await reader(options.reader);
 
   const { preserveObjectOnlyInArray = true, customPreprocesser = undefined } =
@@ -57,6 +55,8 @@ export default async function handler(
     arrayEntryProp,
     forceNonNullableListItem,
   });
+
+  fs.createFileSync(outputPath);
 
   generator(parsedInfo, outputPath, {
     prefix,

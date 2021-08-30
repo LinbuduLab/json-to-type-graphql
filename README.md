@@ -16,13 +16,11 @@ yarn add json-type-graphql --save
 pnpm i json-type-graphql --save
 ```
 
-
-
 ## Example
 
 Generate TypeGraphQL class from JSON object:
 
-> Run `yarn dev` or `yarn demo` to explore! 
+> Run `yarn dev` or `yarn demo` to explore!
 
 JSON:
 
@@ -54,20 +52,21 @@ JSON:
 import path from "path";
 import fs from "fs-extra";
 import jsonfile from "jsonfile";
-import transformer from "./src";
+import transformer from "..";
 
 const outputPath = path.join(__dirname, "./generated.ts");
 
-const content = jsonfile.readFileSync("./demo.json");
-
 fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
-transformer(content, outputPath, {
-  parser: {
-    forceNonNullableListItem: true,
-  },
-  generator: { entryClassName: "Root" },
-});
+(async () => {
+  await transformer(outputPath, {
+    reader: { path: path.join(__dirname, "./demo.json") },
+    parser: {
+      forceNonNullableListItem: true,
+    },
+    generator: { entryClassName: "Root" },
+  });
+})();
 ```
 
 generated:
