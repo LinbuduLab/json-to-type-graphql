@@ -198,11 +198,7 @@ export function objectEntryParser(
           nullable: !forceNonNullable,
           nullableListItem: !forceNonNullableListItem,
           decoratorReturnType:
-            typeof v[0] === "number"
-              ? "Int"
-              : forceReturnType
-              ? strictTypeChecker(v[0])
-              : null,
+            typeof v[0] === "number" ? "Int" : strictTypeChecker(v[0]),
         };
         break;
 

@@ -13,11 +13,16 @@ fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
 (async () => {
   await transformer(outputPath, {
-    // reader: { path: path.join(__dirname, "./demo.json") },
-    reader: { url: "https://dog.ceo/api/breeds/image/random" },
+    reader: { path: path.join(__dirname, "./demo.json") },
+    // reader: { url: "https://dog.ceo/api/breeds/image/random" },
     parser: {
-      forceNonNullableListItem: true,
+      forceNonNullable: false,
+      forceReturnType: false,
+      forceNonNullableListItem: false,
     },
-    generator: { entryClassName: "Root" },
+    generator: { entryClassName: "Root", sort: false },
+    checker: {
+      disable: true,
+    },
   });
 })();

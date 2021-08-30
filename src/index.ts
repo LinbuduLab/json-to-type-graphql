@@ -88,13 +88,13 @@ export default async function handler(
     removeUnusedDecorators,
   });
 
-  // FIXME: Skip checking when using normal order
   await checker(outputPath, {
-    disable: disableChecker,
+    disable: sort || disableChecker,
     keep,
     execaOptions,
     executeOptions,
   });
+  console.log("Checking finished");
 
   formatter(outputPath, { disable });
 }

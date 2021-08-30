@@ -25,7 +25,7 @@ export function invokeClassDeclarationGenerator(
   record: ClassGeneratorRecord,
   apply?: boolean
 ) {
-  const reversedRecord = reverseObjectKeys(record);
+  const reversedRecord = record;
 
   collectedInfoRecord = reversedRecord;
 

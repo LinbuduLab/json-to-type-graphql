@@ -19,3 +19,7 @@ Checker -> 创建一个使用生成的ObjectType作为 Resolver Type，检查是
 - formatter
 - checker
 - writer
+
+fix
+
+- 忘记 string[] 也是需要 [String]得了？
