@@ -4,6 +4,7 @@ import { OptionalKind, ClassDeclarationStructure, SourceFile } from "ts-morph";
 import { Options as GotOptions } from "got";
 import { Options as ExecaOptions } from "execa";
 import { CompilerOptions } from "typescript";
+import { BuildSchemaOptions } from "type-graphql";
 
 /**
  * Capitalize string, avoid incorrect behaviour like: "nestedType" -> "Nested Type"
@@ -113,6 +114,7 @@ export type CheckerOptions = {
   keep: boolean;
   execaOptions: ExecaOptions;
   executeOptions: CompilerOptions;
+  // buildSchemaOptions: Omit<BuildSchemaOptions, "resolvers">;
 };
 
 export type FormatterOptions = {

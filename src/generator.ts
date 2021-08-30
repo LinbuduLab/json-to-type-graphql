@@ -8,9 +8,9 @@ import type {
 
 import {
   capitalCase,
-  DEFAULT_SUFFIX,
   normalizeClassFix,
   normalizeTypeFix,
+  DEFAULT_SUFFIX,
   DEFAULT_ENTRY_CLASS_NAME,
   BASE_IMPORTS,
   BASE_MODULE_SPECIFIER,
@@ -51,6 +51,9 @@ export function generator(
     options
   );
 
+  // console.log(classGeneratorRecord["Fec"].info.properties);
+  // console.log(classGeneratorRecord["Fec"].info.properties![0]!.decorators);
+
   reverseRelation(classGeneratorRecord);
 
   invokeClassDeclarationGenerator(source, classGeneratorRecord, true);
@@ -76,7 +79,8 @@ export function collectClassStruInfo(
 
   const classPrefix = normalizeClassFix(prefix, entryClassName);
   const classSuffix = normalizeClassFix(suffix, DEFAULT_SUFFIX);
-  for (const [, v] of Object.entries(parsed)) {
+
+  for (const [k, v] of Object.entries(parsed)) {
     const typePrefix = normalizeTypeFix(classPrefix, v.type);
     const typeSuffix = normalizeTypeFix(classSuffix, v.type);
 

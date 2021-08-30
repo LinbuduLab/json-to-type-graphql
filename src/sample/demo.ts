@@ -22,7 +22,7 @@ fs.existsSync(outputPath) && fs.rmSync(outputPath);
     },
     generator: { entryClassName: "Root", sort: false },
     checker: {
-      disable: true,
+      disable: false,
     },
   });
 })();

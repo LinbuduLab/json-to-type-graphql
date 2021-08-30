@@ -5,7 +5,6 @@ import {
   CHECKER_IMPORTS,
   CHECKER_MODULE_SPECIFIER,
   ensureArray,
-  reverseObjectKeys,
 } from "./utils";
 import type { ClassGeneratorRecord, ClassInfo } from "./utils";
 

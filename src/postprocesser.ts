@@ -1,6 +1,7 @@
 import { SourceFile } from "ts-morph";
-import { PostprocesserOptions } from "./utils";
 import omit from "lodash/omit";
+
+import type { PostprocesserOptions } from "./utils";
 
 export function postprocesser(
   source: SourceFile,

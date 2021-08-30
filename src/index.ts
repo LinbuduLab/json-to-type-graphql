@@ -52,6 +52,7 @@ export default async function handler(
     keep = false,
     execaOptions = {},
     executeOptions = {},
+    // buildSchemaOptions = {},
   } = options.checker ?? {};
 
   const { disable = false } = options.formatter ?? {};
@@ -94,7 +95,6 @@ export default async function handler(
     execaOptions,
     executeOptions,
   });
-  console.log("Checking finished");
 
   formatter(outputPath, { disable });
 }

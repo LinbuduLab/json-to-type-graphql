@@ -2,14 +2,9 @@ import path from "path";
 import fs from "fs-extra";
 import { Project } from "ts-morph";
 import execa from "execa";
-import {
-  createTmpResolverContent,
-  addImportDeclaration,
-  setNamedImportsMember,
-  removeNamedImportsMember,
-  removeImportDeclarations,
-} from "./ast";
-import { CheckerOptions } from "./utils";
+import { createTmpResolverContent } from "./ast";
+
+import type { CheckerOptions } from "./utils";
 
 export async function checker(outputPath: string, options: CheckerOptions) {
   if (options.disable) return;
@@ -25,10 +20,7 @@ export async function checker(outputPath: string, options: CheckerOptions) {
 
   const checkerOnlySource = project.addSourceFileAtPath(tmpFilePath);
 
-  const { resolverClass, buildSchemaStatements } = createTmpResolverContent(
-    checkerOnlySource,
-    "Root"
-  );
+  createTmpResolverContent(checkerOnlySource, "Root");
 
   try {
     await execa(
@@ -51,18 +43,6 @@ export async function checker(outputPath: string, options: CheckerOptions) {
   } catch (error) {
     throw error;
   } finally {
-    options.keep && fs.rmSync(tmpFilePath);
+    !options.keep && fs.rmSync(tmpFilePath);
   }
-
-  // resolverClass.remove();
-
-  // buildSchemaStatements.forEach((statement) => statement.remove());
-
-  // removeImportDeclarations(checkerOnlySource, ["reflect-metadata"], true);
-  // removeNamedImportsMember(
-  //   checkerOnlySource,
-  //   ["Resolver", "Query"],
-  //   "type-graphql",
-  //   true
-  // );
 }
