@@ -3,7 +3,7 @@
 > This project is still under heavy development, the documentation is far from ready, but basic features are already supported:
 >
 > - Nest object type generation
-> - Normal generator order as `P-c1-C11-C12-c2-C21-C3-C31`
+> - Normal generator order as `P-c1-C11-C12-C2-C21-C3-C31`
 > - Customizable preprocesser
 > - Control prop scope / readonly / optional
 > - ...
@@ -20,7 +20,7 @@ pnpm i json-type-graphql --save
 
 Generate TypeGraphQL class from JSON object:
 
-> Run `yarn dev` or `yarn demo` to explore!
+> Run `yarn demo` to explore!
 
 JSON:
 

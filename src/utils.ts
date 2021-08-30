@@ -1,6 +1,6 @@
 import { Options as PrettierOptions } from "prettier";
 import { capitalCase as originalCapitalCase } from "capital-case";
-import { OptionalKind, ClassDeclarationStructure } from "ts-morph";
+import { OptionalKind, ClassDeclarationStructure, SourceFile } from "ts-morph";
 import { Options as GotOptions } from "got";
 
 /**
@@ -48,12 +48,28 @@ export type ReaderOptions = {
   raw?: SourceObject | SourceObject[] | SourceArray;
 };
 
+export const BASE_IMPORTS = ["ObjectType", "Field", "Int", "ID"];
+export const BASE_MODULE_SPECIFIER = "type-graphql";
+
+export const CHECKER_IMPORTS = ["Resolver", "Query", "buildSchemaSync"];
+export const CHECKER_MODULE_SPECIFIER = "reflect-metadata";
+
+export type PostprocesserFunc = (
+  source: SourceFile,
+  options: Omit<PostprocesserOptions, "customPostprocesser">
+) => void;
+
+export type PostprocesserOptions = {
+  removeUnusedDecorators?: boolean;
+  customPostprocesser?: PostprocesserFunc;
+};
+
 /**
  * Custom preprocess function
  */
 export type PreprocesserFunc = (
   raw: SourceObject | SourceObject[] | SourceArray,
-  options: PreprocesserOptions
+  options: Omit<PreprocesserOptions, "customPreprocesser">
 ) => SourceObject | SourceObject[];
 
 export type PreprocesserOptions = {

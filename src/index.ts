@@ -1,4 +1,5 @@
 import fs from "fs-extra";
+import { Project } from "ts-morph";
 import util from "util";
 
 import { reader } from "./reader";
@@ -7,6 +8,7 @@ import { parser } from "./parser";
 import { generator } from "./generator";
 import { checker } from "./checker";
 import { formatter } from "./formatter";
+import { postprocesser } from "./postprocesser";
 
 import { ARRAY_ENTRY_STRUCTURE_PROP, DEFAULT_ENTRY_CLASS_NAME } from "./utils";
 import type { Options, SourceObject } from "./utils";
@@ -59,10 +61,12 @@ export default async function handler(
 
   fs.createFileSync(outputPath);
 
+  const source = new Project().addSourceFileAtPath(outputPath);
+
   // TODO: create ts-morph project here to make it shared with
   // generator & checker & postprocesser
 
-  generator(parsedInfo, outputPath, {
+  generator(source, parsedInfo, {
     prefix,
     publicProps,
     readonlyProps,
@@ -70,7 +74,10 @@ export default async function handler(
     suffix,
   });
 
+  // FIXME: Skip checking when using normal order
   // await checker(outputPath);
+
+  postprocesser(source, {});
 
   formatter(outputPath, { disable });
 }

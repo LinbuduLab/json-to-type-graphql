@@ -8,10 +8,12 @@ import type {
 
 import {
   capitalCase,
-  DEFAULT_ENTRY_CLASS_NAME,
   DEFAULT_SUFFIX,
   normalizeClassFix,
   normalizeTypeFix,
+  DEFAULT_ENTRY_CLASS_NAME,
+  BASE_IMPORTS,
+  BASE_MODULE_SPECIFIER,
 } from "./utils";
 import type {
   ProcessedFieldInfoObject,
@@ -27,17 +29,16 @@ import {
 } from "./ast";
 
 export function generator(
+  source: SourceFile,
   parsed: ProcessedFieldInfoObject,
-  outputPath: string,
   options: GeneratorOptions
 ) {
-  const source = new Project().addSourceFileAtPath(outputPath);
   const classGeneratorRecord: ClassGeneratorRecord = {};
 
   addImportDeclaration(
     source,
-    ["ObjectType", "Field", "Int", "ID"],
-    "type-graphql",
+    BASE_IMPORTS,
+    BASE_MODULE_SPECIFIER,
     ImportType.NAMED_IMPORTS,
     false
   );

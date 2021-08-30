@@ -1,15 +1,13 @@
-import {
-  ClassDeclaration,
-  MethodDeclarationStructure,
-  OptionalKind,
-  Project,
-  SourceFile,
-  Statement,
-  ts,
-} from "ts-morph";
+import { ClassDeclaration, SourceFile, Statement, ts } from "ts-morph";
 
-import { ClassInfo, ensureArray, reverseObjectKeys } from "./utils";
-import type { ClassGeneratorRecord } from "./utils";
+import {
+  BASE_MODULE_SPECIFIER,
+  CHECKER_IMPORTS,
+  CHECKER_MODULE_SPECIFIER,
+  ensureArray,
+  reverseObjectKeys,
+} from "./utils";
+import type { ClassGeneratorRecord, ClassInfo } from "./utils";
 
 /** Global record for class declaration generation */
 let collectedInfoRecord: ClassGeneratorRecord = {};
@@ -282,15 +280,11 @@ export function createTmpResolverContent(
   addImportDeclaration(
     source,
     undefined,
-    "reflect-metadata",
+    CHECKER_MODULE_SPECIFIER,
     ImportType.DEFAULT_IMPORT
   );
 
-  appendNamedImportsMember(
-    source,
-    ["Resolver", "Query", "buildSchemaSync"],
-    "type-graphql"
-  );
+  appendNamedImportsMember(source, CHECKER_IMPORTS, BASE_MODULE_SPECIFIER);
 
   const resolverClass = source.addClass({
     name: "TmpResolver",
