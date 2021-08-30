@@ -2,6 +2,8 @@ import { Options as PrettierOptions } from "prettier";
 import { capitalCase as originalCapitalCase } from "capital-case";
 import { OptionalKind, ClassDeclarationStructure, SourceFile } from "ts-morph";
 import { Options as GotOptions } from "got";
+import { Options as ExecaOptions } from "execa";
+import { CompilerOptions } from "typescript";
 
 /**
  * Capitalize string, avoid incorrect behaviour like: "nestedType" -> "Nested Type"
@@ -31,6 +33,12 @@ export const DEFAULT_ENTRY_CLASS_NAME_SUFFIX = "__TMP_CLASS_NAME_TYPE__";
 
 export const DEFAULT_SUFFIX = "Type";
 
+export const BASE_IMPORTS = ["ObjectType", "Field", "Int", "ID"];
+export const BASE_MODULE_SPECIFIER = "type-graphql";
+
+export const CHECKER_IMPORTS = ["Resolver", "Query", "buildSchemaSync"];
+export const CHECKER_MODULE_SPECIFIER = "reflect-metadata";
+
 export type SourceObject = Record<string, any>;
 
 export type SourceArray = Array<string | boolean | number | SourceObject>;
@@ -41,27 +49,24 @@ export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
 
 export type MaybeArray<T> = T | Array<T>;
 
+export type ParsedFieldInfo = {
+  type: ValidFieldType;
+  nested: boolean;
+  prop: string;
+  propType: "string" | "number" | "boolean" | string;
+  list: boolean;
+  nullable: boolean;
+  decoratorReturnType: string | null;
+  fields: ProcessedFieldInfoObject | null;
+  shared?: boolean;
+  nullableListItem?: boolean;
+};
+
 export type ReaderOptions = {
   path?: string;
   url?: string;
   options?: GotOptions;
   raw?: SourceObject | SourceObject[] | SourceArray;
-};
-
-export const BASE_IMPORTS = ["ObjectType", "Field", "Int", "ID"];
-export const BASE_MODULE_SPECIFIER = "type-graphql";
-
-export const CHECKER_IMPORTS = ["Resolver", "Query", "buildSchemaSync"];
-export const CHECKER_MODULE_SPECIFIER = "reflect-metadata";
-
-export type PostprocesserFunc = (
-  source: SourceFile,
-  options: Omit<PostprocesserOptions, "customPostprocesser">
-) => void;
-
-export type PostprocesserOptions = {
-  removeUnusedDecorators?: boolean;
-  customPostprocesser?: PostprocesserFunc;
 };
 
 /**
@@ -73,31 +78,8 @@ export type PreprocesserFunc = (
 ) => SourceObject | SourceObject[];
 
 export type PreprocesserOptions = {
-  preserveObjectOnlyInArray?: boolean;
+  preserveObjectOnlyInArray: boolean;
   customPreprocesser?: PreprocesserFunc;
-};
-
-export type Options = {
-  /**
-   * Options pass to reader
-   */
-  reader: Partial<ReaderOptions>;
-  /**
-   * Options pass to preprocesser
-   */
-  preprocesser?: Partial<PreprocesserOptions>;
-  /**
-   * Options pass to parser
-   */
-  parser?: Partial<ParserOptions>;
-  /**
-   * Options pass to generator
-   */
-  generator?: Partial<GeneratorOptions>;
-  /**
-   * Options pass to formatter
-   */
-  formatter?: Partial<FormatterOptions>;
 };
 
 export type ParserOptions = {
@@ -113,23 +95,59 @@ export type GeneratorOptions = {
   suffix: boolean | string;
   publicProps: string[];
   readonlyProps: string[];
+  sort: boolean;
+};
+
+export type PostprocesserFunc = (
+  source: SourceFile,
+  options: Omit<PostprocesserOptions, "customPostprocesser">
+) => void;
+
+export type PostprocesserOptions = {
+  removeUnusedDecorators: boolean;
+  customPostprocesser?: PostprocesserFunc;
+};
+
+export type CheckerOptions = {
+  disable: boolean;
+  keep: boolean;
+  execaOptions: ExecaOptions;
+  executeOptions: CompilerOptions;
 };
 
 export type FormatterOptions = {
   disable: boolean;
 } & PrettierOptions;
 
-export type ParsedFieldInfo = {
-  type: ValidFieldType;
-  nested: boolean;
-  prop: string;
-  propType: "string" | "number" | "boolean" | string;
-  list: boolean;
-  nullable: boolean;
-  decoratorReturnType: string | null;
-  fields: ProcessedFieldInfoObject | null;
-  shared?: boolean;
-  nullableListItem?: boolean;
+export type Options = {
+  /**
+   * Options pass to reader
+   */
+  reader: Partial<ReaderOptions>;
+  /**
+   * Options pass to pre-processer
+   */
+  preprocesser?: Partial<PreprocesserOptions>;
+  /**
+   * Options pass to parser
+   */
+  parser?: Partial<ParserOptions>;
+  /**
+   * Options pass to generator
+   */
+  generator?: Partial<GeneratorOptions>;
+  /**
+   * Options pass to post-processer
+   */
+  postprocesser?: Partial<PostprocesserOptions>;
+  /**
+   * Options pass to checker
+   */
+  checker?: Partial<CheckerOptions>;
+  /**
+   * Options pass to formatter
+   */
+  formatter?: Partial<FormatterOptions>;
 };
 
 export type ProcessedFieldInfoObject = Record<string, ParsedFieldInfo>;

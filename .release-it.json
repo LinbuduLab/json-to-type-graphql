@@ -1,6 +1,7 @@
 {
   "github": {
-    "release": true
+    "release": true,
+    "tokenRef": "GITHUB_TOKEN"
   },
   "npm": {
     "skipChecks": true
@@ -9,9 +10,14 @@
     "access": "public"
   },
   "git": {
+    "commitMessage": "release: v${version}",
+    "changelog": "auto-changelog --stdout --commit-limit false -u --template https://raw.githubusercontent.com/release-it/release-it/master/templates/changelog-compact.hbs",
+    "tag": true,
+    "tagAnnotation": "Release ${version}",
+    "push": true,
+    "pushArgs": ["--follow-tags"],
     "addUntrackedFiles": true,
-    "requireCleanWorkingDir": false,
-    "changelog": "auto-changelog --stdout --commit-limit false -u --template https://raw.githubusercontent.com/release-it/release-it/master/templates/changelog-compact.hbs"
+    "requireCleanWorkingDir": false
   },
   "hooks": {
     "after:bump": "auto-changelog -p"

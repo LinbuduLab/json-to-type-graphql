@@ -9,16 +9,11 @@ import {
   removeNamedImportsMember,
   removeImportDeclarations,
 } from "./ast";
-import source from "got/dist/source";
+import { CheckerOptions } from "./utils";
 
-// 创建一个文件，引用生成路径的根类型来写入 resolver
-// 再创建一个文件，引用这个
+export async function checker(outputPath: string, options: CheckerOptions) {
+  if (options.disable) return;
 
-// 在创建完毕的文件中新增 resolver
-// 新增 Resolver Query 导入
-// 新增临时文件 引用这一路径
-// 尝试 buildSchema
-export async function checker(outputPath: string) {
   const outputDir = path.dirname(outputPath);
   const tmpFilePath = path.resolve(outputDir, "generated_checker.ts");
 
@@ -43,17 +38,20 @@ export async function checker(outputPath: string) {
         JSON.stringify({
           experimentalDecorators: true,
           emitDecoratorMetadata: true,
+          declaration: false,
+          ...options.executeOptions,
         }),
       ],
       {
         shell: true,
         stdio: "inherit",
+        ...options.execaOptions,
       }
     );
   } catch (error) {
     throw error;
   } finally {
-    fs.rmSync(tmpFilePath);
+    options.keep && fs.rmSync(tmpFilePath);
   }
 
   // resolverClass.remove();

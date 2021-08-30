@@ -41,7 +41,18 @@ export default async function handler(
     readonlyProps = [],
     suffix = false,
     entryClassName = DEFAULT_ENTRY_CLASS_NAME,
+    sort = true,
   } = options.generator ?? {};
+
+  const { customPostprocesser = undefined, removeUnusedDecorators = false } =
+    options.postprocesser ?? {};
+
+  const {
+    disable: disableChecker = true,
+    keep = false,
+    execaOptions = {},
+    executeOptions = {},
+  } = options.checker ?? {};
 
   const { disable = false } = options.formatter ?? {};
 
@@ -59,12 +70,9 @@ export default async function handler(
     forceNonNullableListItem,
   });
 
-  fs.createFileSync(outputPath);
+  fs.ensureFileSync(outputPath);
 
   const source = new Project().addSourceFileAtPath(outputPath);
-
-  // TODO: create ts-morph project here to make it shared with
-  // generator & checker & postprocesser
 
   generator(source, parsedInfo, {
     prefix,
@@ -72,12 +80,21 @@ export default async function handler(
     readonlyProps,
     entryClassName,
     suffix,
+    sort,
+  });
+
+  postprocesser(source, {
+    customPostprocesser,
+    removeUnusedDecorators,
   });
 
   // FIXME: Skip checking when using normal order
-  // await checker(outputPath);
-
-  postprocesser(source, {});
+  await checker(outputPath, {
+    disable: disableChecker,
+    keep,
+    execaOptions,
+    executeOptions,
+  });
 
   formatter(outputPath, { disable });
 }
