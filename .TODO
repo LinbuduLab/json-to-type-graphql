@@ -1,0 +1,20 @@
+Reader for Request / JSON file / JSON Object
+- got
+- file
+- raw
+
+Postprocesser
+- fully customize 
+- use provided ast methods
+
+Field return type
+
+Checker -> 创建一个使用生成的ObjectType作为 Resolver Type，检查是否能成功构建 schema
+
+- reader
+- preprocesser
+- parser
+- generator
+- postprocesser
+- formatter
+- checker
