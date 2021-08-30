@@ -1,6 +1,6 @@
 {
   "name": "json-type-graphql",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Generate TypeGraphQL Class From JSON Object",
   "main": "dist/index.js",
   "repository": "https://github.com/linbudu599/JSON2TypeGraphQLClass.git",
