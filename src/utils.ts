@@ -1,6 +1,7 @@
 import { Options as PrettierOptions } from "prettier";
 import { capitalCase as originalCapitalCase } from "capital-case";
 import { OptionalKind, ClassDeclarationStructure } from "ts-morph";
+import { Options as GotOptions } from "got";
 
 /**
  * Capitalize string, avoid incorrect behaviour like: "nestedType" -> "Nested Type"
@@ -38,6 +39,15 @@ export type ValidPrimitiveType = "string" | "number" | "boolean";
 
 export type RecordValue<T> = T extends Record<string, infer R> ? R : never;
 
+export type MaybeArray<T> = T | Array<T>;
+
+export type ReaderOptions = {
+  path?: string;
+  url?: string;
+  options?: GotOptions;
+  raw?: SourceObject | SourceObject[] | SourceArray;
+};
+
 /**
  * Custom preprocess function
  */
@@ -52,6 +62,10 @@ export type PreprocesserOptions = {
 };
 
 export type Options = {
+  /**
+   * Options pass to reader
+   */
+  reader: Partial<ReaderOptions>;
   /**
    * Options pass to preprocesser
    */

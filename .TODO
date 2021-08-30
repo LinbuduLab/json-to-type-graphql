@@ -18,3 +18,4 @@ Checker -> 创建一个使用生成的ObjectType作为 Resolver Type，检查是
 - postprocesser
 - formatter
 - checker
+- writer

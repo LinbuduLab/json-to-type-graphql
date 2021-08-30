@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import util from "util";
 
+import { reader } from "./reader";
 import { preprocesser } from "./preprocesser";
 import { parser } from "./parser";
 import { generator } from "./generator";
@@ -15,12 +16,13 @@ import type { Options, SourceObject } from "./utils";
  * @param outputPath Output file path
  * @param options
  */
-export default function handler(
-  content: SourceObject | SourceObject[],
+export default async function handler(
   outputPath: string,
-  options?: Options
-): void {
+  options: Options
+): Promise<void> {
   fs.createFileSync(outputPath);
+
+  const content = await reader(options.reader);
 
   const { preserveObjectOnlyInArray = true, customPreprocesser = undefined } =
     options?.preprocesser ?? {};
@@ -30,7 +32,7 @@ export default function handler(
     forceReturnType = false,
     arrayEntryProp = ARRAY_ENTRY_STRUCTURE_PROP,
     forceNonNullableListItem = false,
-  } = options?.parser ?? {};
+  } = options.parser ?? {};
 
   const {
     prefix = false,
@@ -38,9 +40,9 @@ export default function handler(
     readonlyProps = [],
     suffix = false,
     entryClassName = DEFAULT_ENTRY_CLASS_NAME,
-  } = options?.generator ?? {};
+  } = options.generator ?? {};
 
-  const { disable = false } = options?.formatter ?? {};
+  const { disable = false } = options.formatter ?? {};
 
   const originInput = content;
 

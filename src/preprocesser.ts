@@ -1,4 +1,4 @@
-import { strictTypeChecker, ValidFieldType } from "./utils";
+import { MaybeArray, strictTypeChecker, ValidFieldType } from "./utils";
 
 import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
 
@@ -10,9 +10,9 @@ import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
  * @returns
  */
 export function preprocesser(
-  raw: SourceObject | SourceObject[] | SourceArray,
+  raw: MaybeArray<SourceObject> | SourceArray,
   options: PreprocesserOptions
-): SourceObject | SourceObject[] | SourceArray {
+): MaybeArray<SourceObject> | SourceArray {
   if (
     options.customPreprocesser &&
     typeof options.customPreprocesser === "function"
