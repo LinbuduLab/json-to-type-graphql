@@ -1,13 +1,5 @@
 # json-type-graphql
 
-> This project is still under heavy development, the documentation is far from ready, but basic features are already supported:
->
-> - Nest object type generation
-> - Normal generator order as `P-c1-C11-C12-C2-C21-C3-C31`
-> - Customizable preprocesser
-> - Control prop scope / readonly / optional
-> - ...
-
 ## Start
 
 ```bash
@@ -15,6 +7,15 @@ npm i json-type-graphql --save
 yarn add json-type-graphql --save
 pnpm i json-type-graphql --save
 ```
+
+## Current Feature
+
+This project is still under heavy development, the documentation is far from ready, but basic features are already supported:
+
+- Nest object type generation.
+- Normal generator order as `P-c1-C11-C12-C2-C21-C3-C31`.
+- Fully customizable processing flow: reader -> preprocesser -> parser -> generator -> postprocessor -> formatter -> writer
+- ...
 
 ## Example
 
@@ -51,7 +52,6 @@ JSON:
 ```typescript
 import path from "path";
 import fs from "fs-extra";
-import jsonfile from "jsonfile";
 import transformer from "..";
 
 const outputPath = path.join(__dirname, "./generated.ts");
@@ -60,43 +60,21 @@ fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
 (async () => {
   await transformer(outputPath, {
-    reader: { path: path.join(__dirname, "./demo.json") },
-    parser: {
-      forceNonNullableListItem: true,
-    },
+    // U can also pass reader.raw with JavaScript object,
+    // or reader.url & reader.options for request(using got under the hood)
+    reader: { path: path.join(__dirname, "./sample.json") },
+    parser: {},
     generator: { entryClassName: "Root" },
   });
 })();
 ```
 
+> More options can be found in [utils.ts](./src/utils.ts)
+
 generated:
 
 ```typescript
 import { ObjectType, Field, Int, ID } from "type-graphql";
-
-@ObjectType()
-export class Root {
-  @Field()
-  booleanField!: boolean;
-
-  @Field((type) => Int!)
-  numberField!: number;
-
-  @Field()
-  stringField!: string;
-
-  @Field((type) => [Int!]!)
-  primitiveArrayField!: number[];
-
-  @Field((type) => [MixedField!]!)
-  mixedField!: MixedField[];
-
-  @Field((type) => [EmptyArrayField!]!)
-  emptyArrayField!: EmptyArrayField[];
-
-  @Field((type) => NestedField!)
-  nestedField!: NestedField;
-}
 
 @ObjectType()
 export class MixedField {
@@ -109,20 +87,44 @@ export class EmptyArrayField {}
 
 @ObjectType()
 export class NestedField {
-  @Field()
-  booleanField!: boolean;
+  @Field({ nullable: true })
+  booleanField?: boolean;
 
-  @Field((type) => Int!)
-  numberField!: number;
+  @Field((type) => Int, { nullable: true })
+  numberField?: number;
 
-  @Field()
-  stringField!: string;
+  @Field({ nullable: true })
+  stringField?: string;
 
-  @Field((type) => [Int!]!)
-  primitiveArrayField!: number[];
+  @Field((type) => [Int], { nullable: true })
+  primitiveArrayField?: number[];
 
-  @Field((type) => [Int!]!)
-  mixedFieldrs!: number[];
+  @Field((type) => [Int], { nullable: true })
+  mixedFieldrs?: number[];
+}
+
+@ObjectType()
+export class Root {
+  @Field({ nullable: true })
+  booleanField?: boolean;
+
+  @Field((type) => Int, { nullable: true })
+  numberField?: number;
+
+  @Field({ nullable: true })
+  stringField?: string;
+
+  @Field((type) => [Int], { nullable: true })
+  primitiveArrayField?: number[];
+
+  @Field((type) => [MixedField], { nullable: true })
+  mixedField?: MixedField[];
+
+  @Field((type) => [EmptyArrayField], { nullable: true })
+  emptyArrayField?: EmptyArrayField[];
+
+  @Field((type) => NestedField, { nullable: true })
+  nestedField?: NestedField;
 }
 ```
 
