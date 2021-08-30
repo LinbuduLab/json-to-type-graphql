@@ -2,6 +2,8 @@ import path from "path";
 import fs from "fs-extra";
 import jsonfile from "jsonfile";
 import transformer from "..";
+import tmp from "tmp";
+import { createTmpResolverContent } from "../ast";
 
 const outputPath = path.join(__dirname, "./generated.ts");
 

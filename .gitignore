@@ -8,6 +8,7 @@ lerna-debug.log*
 
 generated.ts
 testing.ts
+generated_checker.ts
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

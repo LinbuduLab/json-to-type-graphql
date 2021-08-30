@@ -28,12 +28,15 @@
   },
   "dependencies": {
     "capital-case": "^1.0.4",
+    "execa": "^5.1.1",
     "fs-extra": "^10.0.0",
     "got": "^11.8.2",
     "graphql": "^15.5.1",
     "jsonfile": "^6.1.0",
     "lodash": "^4.17.21",
     "prettier": "^2.3.2",
+    "reflect-metadata": "^0.1.13",
+    "tmp": "^0.2.1",
     "ts-morph": "^12.0.0"
   },
   "devDependencies": {
@@ -46,6 +49,7 @@
     "@types/lodash": "^4.14.172",
     "@types/node": "^16.7.4",
     "@types/prettier": "^2.3.2",
+    "@types/tmp": "^0.2.1",
     "auto-changelog": "^2.3.0",
     "commitizen": "^4.2.4",
     "commitlint-config-cz": "^0.13.2",

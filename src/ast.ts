@@ -1,4 +1,12 @@
-import type { SourceFile } from "ts-morph";
+import {
+  ClassDeclaration,
+  MethodDeclarationStructure,
+  OptionalKind,
+  Project,
+  SourceFile,
+  Statement,
+  ts,
+} from "ts-morph";
 
 import { ClassInfo, ensureArray, reverseObjectKeys } from "./utils";
 import type { ClassGeneratorRecord } from "./utils";
@@ -62,6 +70,28 @@ export function checkExistClassDeclarations(source: SourceFile): string[] {
   return source.getClasses().map((x) => x.getName()!);
 }
 
+export function removeNamedImportsMember(
+  source: SourceFile,
+  namedImportsToRemove: string[],
+  moduleSpecifier: string,
+  apply?: boolean
+) {
+  const target = source.getImportDeclaration(
+    (dec) => dec.getModuleSpecifierValue() === moduleSpecifier
+  );
+
+  const existNamedImports = target?.getNamedImports();
+
+  const remainedNamedImports =
+    existNamedImports
+      ?.filter((imp) => !namedImportsToRemove.includes(imp.getText()))
+      .map((i) => i.getText()) ?? [];
+
+  setNamedImportsMember(source, remainedNamedImports, moduleSpecifier, false);
+
+  apply && source.saveSync();
+}
+
 /**
  * Directly set named imports member, exist named imports will be removed.
  * @param source Source
@@ -82,6 +112,21 @@ export function setNamedImportsMember(
   target?.removeNamedImports();
 
   target?.addNamedImports(namedImports);
+
+  apply && source.saveSync();
+}
+
+export function removeImportDeclarations(
+  source: SourceFile,
+  specifier: string | string[],
+  apply?: boolean
+) {
+  const specifierList = ensureArray(specifier);
+
+  source
+    .getImportDeclarations()
+    .filter((imp) => specifierList.includes(imp.getModuleSpecifierValue()))
+    .forEach((imp) => imp.remove());
 
   apply && source.saveSync();
 }
@@ -158,7 +203,7 @@ export function addImportDeclaration(
  */
 export function addImportDeclaration(
   source: SourceFile,
-  defaultImport: string,
+  defaultImport: string | undefined,
   moduleSpecifier: string,
   importType: ImportType.DEFAULT_IMPORT,
   apply?: boolean
@@ -166,7 +211,7 @@ export function addImportDeclaration(
 
 export function addImportDeclaration(
   source: SourceFile,
-  importClause: string | string[],
+  importClause: string | undefined | string[],
   moduleSpecifier: string,
   importType: ImportType,
   apply?: boolean
@@ -182,7 +227,7 @@ export function addImportDeclaration(
 
     case ImportType.NAMED_IMPORTS:
       source.addImportDeclaration({
-        namedImports: ensureArray(importClause),
+        namedImports: ensureArray(importClause as string),
         moduleSpecifier,
       });
 
@@ -210,4 +255,81 @@ export function classDeclarationGeneratorFromList(
 ): void {
   list.forEach((classInfo) => source.addClass(classInfo));
   apply && source.saveSync();
+}
+
+export function removeClassDeclarations(
+  source: SourceFile,
+  names: string[],
+  apply?: boolean
+): void {
+  source
+    .getClasses()
+    .filter((classDec) => names.includes(classDec.getName()!))
+    .forEach((classDec) => {
+      classDec.remove();
+    });
+
+  apply && source.saveSync();
+}
+
+export function createTmpResolverContent(
+  source: SourceFile,
+  rootType: string
+): {
+  resolverClass: ClassDeclaration;
+  buildSchemaStatements: Statement<ts.Statement>[];
+} {
+  addImportDeclaration(
+    source,
+    undefined,
+    "reflect-metadata",
+    ImportType.DEFAULT_IMPORT
+  );
+
+  appendNamedImportsMember(
+    source,
+    ["Resolver", "Query", "buildSchemaSync"],
+    "type-graphql"
+  );
+
+  const resolverClass = source.addClass({
+    name: "TmpResolver",
+    isExported: true,
+    decorators: [
+      {
+        name: "Resolver",
+        arguments: [`(type)=>${rootType}`],
+      },
+    ],
+    methods: [
+      {
+        name: "TmpResolver",
+        isAsync: true,
+        statements: ["return [];"],
+        decorators: [
+          {
+            name: "Query",
+            arguments: [`(type)=>[${rootType}]`],
+          },
+        ],
+        returnType: `Promise<${rootType}[]>`,
+      },
+    ],
+  });
+
+  // TODO: enhancement
+  const buildSchemaStatements = source.addStatements([
+    `
+  buildSchemaSync({
+    resolvers: [TmpResolver],
+    // emitSchemaFile: true
+  });`,
+  ]);
+
+  source.saveSync();
+
+  return {
+    resolverClass,
+    buildSchemaStatements,
+  };
 }
