@@ -6,12 +6,12 @@ import { reader } from "./reader";
 import { preprocesser } from "./preprocesser";
 import { parser } from "./parser";
 import { generator } from "./generator";
-import { checker } from "./checker";
-import { formatter } from "./formatter";
 import { postprocesser } from "./postprocesser";
+import { checker } from "./checker";
+import { writter } from "./writter";
 
 import { ARRAY_ENTRY_STRUCTURE_PROP, DEFAULT_ENTRY_CLASS_NAME } from "./utils";
-import type { Options, SourceObject } from "./utils";
+import type { Options } from "./utils";
 
 /**
  * Generate TypeGraphQL class declaration from JSON object
@@ -19,10 +19,7 @@ import type { Options, SourceObject } from "./utils";
  * @param outputPath Output file path
  * @param options
  */
-export default async function handler(
-  outputPath: string,
-  options: Options
-): Promise<void> {
+export default async function handler(options: Options): Promise<void> {
   const content = await reader(options.reader);
 
   const { preserveObjectOnlyInArray = true, customPreprocesser = undefined } =
@@ -55,7 +52,12 @@ export default async function handler(
     // buildSchemaOptions = {},
   } = options.checker ?? {};
 
-  const { disable = false } = options.formatter ?? {};
+  const {
+    format = true,
+    override,
+    formatOptions,
+    outputPath,
+  } = options.writter ?? {};
 
   const originInput = content;
 
@@ -96,5 +98,5 @@ export default async function handler(
     executeOptions,
   });
 
-  formatter(outputPath, { disable });
+  writter({ outputPath, format, formatOptions, override });
 }

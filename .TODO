@@ -1,8 +1,3 @@
-Reader for Request / JSON file / JSON Object
-- got
-- file
-- raw
-
 Postprocesser
 - fully customize 
 - use provided ast methods
@@ -16,8 +11,8 @@ Checker -> 创建一个使用生成的ObjectType作为 Resolver Type，检查是
 - parser
 - generator
 - postprocesser
-- formatter
 - checker
+- formatter
 - writer
 
 fix

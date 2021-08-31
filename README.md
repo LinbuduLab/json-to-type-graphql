@@ -50,21 +50,21 @@ JSON:
 ```
 
 ```typescript
-import path from "path";
-import fs from "fs-extra";
-import transformer from "..";
-
-const outputPath = path.join(__dirname, "./generated.ts");
-
-fs.existsSync(outputPath) && fs.rmSync(outputPath);
-
 (async () => {
-  await transformer(outputPath, {
-    // U can also pass reader.raw with JavaScript object,
-    // or reader.url & reader.options for request(using got under the hood)
-    reader: { path: path.join(__dirname, "./sample.json") },
-    parser: {},
-    generator: { entryClassName: "Root" },
+  await transformer({
+    reader: { path: path.join(__dirname, "./demo.json") },
+    parser: {
+      forceNonNullable: false,
+      forceReturnType: false,
+      forceNonNullableListItem: false,
+    },
+    generator: { entryClassName: "Root", sort: false },
+    checker: {
+      disable: false,
+    },
+    writter: {
+      outputPath,
+    },
   });
 })();
 ```

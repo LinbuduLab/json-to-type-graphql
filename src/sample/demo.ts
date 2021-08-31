@@ -7,7 +7,7 @@ const outputPath = path.join(__dirname, "./generated.ts");
 fs.existsSync(outputPath) && fs.rmSync(outputPath);
 
 (async () => {
-  await transformer(outputPath, {
+  await transformer({
     reader: { path: path.join(__dirname, "./demo.json") },
     // reader: { path: path.join(__dirname, "./sample.json") },
     // reader: { url: "https://dog.ceo/api/breeds/image/random" },
@@ -19,6 +19,9 @@ fs.existsSync(outputPath) && fs.rmSync(outputPath);
     generator: { entryClassName: "Root", sort: false },
     checker: {
       disable: false,
+    },
+    writter: {
+      outputPath,
     },
   });
 })();

@@ -117,9 +117,12 @@ export type CheckerOptions = {
   // buildSchemaOptions: Omit<BuildSchemaOptions, "resolvers">;
 };
 
-export type FormatterOptions = {
-  disable: boolean;
-} & PrettierOptions;
+export type WriterOptions = {
+  outputPath: string;
+  override?: boolean;
+  format?: boolean;
+  formatOptions?: PrettierOptions;
+};
 
 export type Options = {
   /**
@@ -147,9 +150,9 @@ export type Options = {
    */
   checker?: Partial<CheckerOptions>;
   /**
-   * Options pass to formatter
+   * Options pass to writer
    */
-  formatter?: Partial<FormatterOptions>;
+  writter: WriterOptions;
 };
 
 export type ProcessedFieldInfoObject = Record<string, ParsedFieldInfo>;
