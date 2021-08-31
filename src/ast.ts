@@ -1,10 +1,10 @@
-import { ClassDeclaration, SourceFile, Statement, ts } from "ts-morph";
+import type { ClassDeclaration, SourceFile, Statement, ts } from "ts-morph";
 
 import {
+  ensureArray,
   BASE_MODULE_SPECIFIER,
   CHECKER_IMPORTS,
   CHECKER_MODULE_SPECIFIER,
-  ensureArray,
 } from "./utils";
 import type { ClassGeneratorRecord, ClassInfo } from "./utils";
 
@@ -65,6 +65,13 @@ export function checkExistClassDeclarations(source: SourceFile): string[] {
   return source.getClasses().map((x) => x.getName()!);
 }
 
+/**
+ * Remove named imports from specific import
+ * @param source
+ * @param namedImportsToRemove
+ * @param moduleSpecifier
+ * @param apply
+ */
 export function removeNamedImportsMember(
   source: SourceFile,
   namedImportsToRemove: string[],
@@ -111,6 +118,12 @@ export function setNamedImportsMember(
   apply && source.saveSync();
 }
 
+/**
+ * Remove specific import declarations
+ * @param source
+ * @param specifier
+ * @param apply
+ */
 export function removeImportDeclarations(
   source: SourceFile,
   specifier: string | string[],
@@ -243,6 +256,12 @@ export function addImportDeclaration(
   apply && source.saveSync();
 }
 
+/**
+ * Generate class declarations from list
+ * @param source
+ * @param list
+ * @param apply
+ */
 export function classDeclarationGeneratorFromList(
   source: SourceFile,
   list: ClassInfo[],
@@ -252,6 +271,12 @@ export function classDeclarationGeneratorFromList(
   apply && source.saveSync();
 }
 
+/**
+ * Remove class declarations by name list
+ * @param source
+ * @param names
+ * @param apply
+ */
 export function removeClassDeclarations(
   source: SourceFile,
   names: string[],
@@ -267,6 +292,12 @@ export function removeClassDeclarations(
   apply && source.saveSync();
 }
 
+/**
+ * Add resolver related import, create resolver class, add buildSchemaSync
+ * @param source
+ * @param rootType
+ * @returns
+ */
 export function createTmpResolverContent(
   source: SourceFile,
   rootType: string

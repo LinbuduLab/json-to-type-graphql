@@ -1,4 +1,4 @@
-import { Scope, Project } from "ts-morph";
+import { Scope } from "ts-morph";
 import type {
   SourceFile,
   DecoratorStructure,
@@ -29,6 +29,12 @@ import {
   invokeClassDeclarationGenerator,
 } from "./ast";
 
+/**
+ * Generate AST from parsed info
+ * @param source source file
+ * @param parsed parsed info
+ * @param options generator options
+ */
 export function generator(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
@@ -61,6 +67,14 @@ export function generator(
   invokeClassDeclarationGenerator(source, record, true);
 }
 
+/**
+ * Collect class info record to generate from parsed info
+ * @param source source file
+ * @param parsed parsed info
+ * @param record class info record
+ * @param parent info parent (if exist)
+ * @param options generator options
+ */
 export function collectClassStruInfo(
   source: SourceFile,
   parsed: ProcessedFieldInfoObject,
@@ -145,12 +159,11 @@ export function collectClassStruInfo(
 
   record[entryClassName] = currentRecord;
 }
-
+/**
+ * Fill children info to parent item
+ * @param raw
+ */
 export function reverseRelation(raw: ClassGeneratorRecord) {
-  for (const [k, v] of Object.entries(raw)) {
-    raw[k] = v;
-  }
-
   for (const [k, v] of Object.entries(raw)) {
     if (v.parent) {
       raw[v.parent]["children"].push(k);

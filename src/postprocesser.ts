@@ -3,6 +3,12 @@ import omit from "lodash/omit";
 
 import type { PostprocesserOptions } from "./utils";
 
+/**
+ * Post-process source file after it's processed by generator.
+ * @param source
+ * @param options
+ * @returns
+ */
 export function postprocesser(
   source: SourceFile,
   options: PostprocesserOptions

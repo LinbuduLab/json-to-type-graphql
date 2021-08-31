@@ -62,6 +62,14 @@ JSON:
 ```
 
 ```typescript
+import path from "path";
+import fs from "fs-extra";
+import transformer from "..";
+
+const outputPath = path.join(__dirname, "./generated.ts");
+
+fs.existsSync(outputPath) && fs.rmSync(outputPath);
+
 (async () => {
   await transformer({
     reader: { path: path.join(__dirname, "./demo.json") },
@@ -70,7 +78,7 @@ JSON:
       forceReturnType: false,
       forceNonNullableListItem: false,
     },
-    generator: { entryClassName: "Root", sort: false },
+    generator: { entryClassName: "Root", sort: true },
     checker: {
       disable: false,
     },

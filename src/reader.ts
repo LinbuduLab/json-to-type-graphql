@@ -1,10 +1,19 @@
-import fs from "fs-extra";
 import jsonfile from "jsonfile";
 import path from "path";
 import got, { Options } from "got";
 
-import { MaybeArray, ReaderOptions, SourceArray, SourceObject } from "./utils";
+import type {
+  MaybeArray,
+  ReaderOptions,
+  SourceArray,
+  SourceObject,
+} from "./utils";
 
+/**
+ * Read content from certain resources
+ * @param options
+ * @returns
+ */
 export async function reader(options?: ReaderOptions) {
   // Use Invariant
   if (!options) {

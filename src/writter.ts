@@ -2,6 +2,10 @@ import prettier from "prettier";
 import fs from "fs-extra";
 import type { WriterOptions } from "./utils";
 
+/**
+ * Format generated file and write
+ * @param param
+ */
 export function writter({
   outputPath,
   override,

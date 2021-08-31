@@ -6,6 +6,12 @@ import { createTmpResolverContent } from "./ast";
 
 import type { CheckerOptions } from "./utils";
 
+/**
+ * Check can generated schema be used by buildSchemaSync
+ * @param outputPath generated path
+ * @param options checker options
+ * @returns
+ */
 export async function checker(outputPath: string, options: CheckerOptions) {
   if (options.disable) return;
 
