@@ -16,9 +16,10 @@ fs.existsSync(outputPath) && fs.rmSync(outputPath);
       forceReturnType: false,
       forceNonNullableListItem: false,
     },
-    generator: { entryClassName: "Root", sort: true },
+    generator: { entryClassName: "Root", sort: false },
     checker: {
       disable: false,
+      keep: true,
     },
     writter: {
       outputPath,

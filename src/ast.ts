@@ -5,6 +5,7 @@ import {
   BASE_MODULE_SPECIFIER,
   CHECKER_IMPORTS,
   CHECKER_MODULE_SPECIFIER,
+  CheckerOptions,
 } from "./utils";
 import type { ClassGeneratorRecord, ClassInfo } from "./utils";
 
@@ -300,6 +301,7 @@ export function removeClassDeclarations(
  */
 export function createTmpResolverContent(
   source: SourceFile,
+  checkerOptions: CheckerOptions,
   rootType: string
 ): {
   resolverClass: ClassDeclaration;
@@ -344,7 +346,10 @@ export function createTmpResolverContent(
     `
   buildSchemaSync({
     resolvers: [TmpResolver],
-    // emitSchemaFile: true
+    emitSchemaFile: ${checkerOptions.buildSchemaOptions.emitSchemaFile},
+    skipCheck: false,
+    nullableByDefault: ${checkerOptions.buildSchemaOptions.nullableByDefault},
+    dateScalarMode: ${checkerOptions.buildSchemaOptions.dateScalarMode}
   });`,
   ]);
 

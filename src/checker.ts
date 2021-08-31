@@ -26,7 +26,7 @@ export async function checker(outputPath: string, options: CheckerOptions) {
 
   const checkerOnlySource = project.addSourceFileAtPath(tmpFilePath);
 
-  createTmpResolverContent(checkerOnlySource, "Root");
+  createTmpResolverContent(checkerOnlySource, options, "Root");
 
   try {
     await execa(

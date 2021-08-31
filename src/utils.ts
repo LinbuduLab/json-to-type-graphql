@@ -114,7 +114,7 @@ export type CheckerOptions = {
   keep: boolean;
   execaOptions: ExecaOptions;
   executeOptions: CompilerOptions;
-  // buildSchemaOptions: Omit<BuildSchemaOptions, "resolvers">;
+  buildSchemaOptions: Omit<BuildSchemaOptions, "resolvers">;
 };
 
 export type WriterOptions = {

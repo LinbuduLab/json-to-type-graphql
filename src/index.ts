@@ -48,7 +48,7 @@ export default async function handler(options: Options): Promise<void> {
     keep = false,
     execaOptions = {},
     executeOptions = {},
-    // buildSchemaOptions = {},
+    buildSchemaOptions = {},
   } = options.checker ?? {};
 
   const {
@@ -95,6 +95,7 @@ export default async function handler(options: Options): Promise<void> {
     keep,
     execaOptions,
     executeOptions,
+    buildSchemaOptions,
   });
 
   writter({ outputPath, format, formatOptions, override });
