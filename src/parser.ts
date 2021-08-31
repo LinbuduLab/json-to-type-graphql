@@ -3,6 +3,7 @@ import uniqBy from "lodash/uniqBy";
 
 import { strictTypeChecker, capitalCase, ValidFieldType } from "./utils";
 import type {
+  MaybeArray,
   SourceObject,
   SourceArray,
   ProcessedFieldInfoObject,
@@ -17,7 +18,7 @@ import type {
  * @returns
  */
 export function parser(
-  content: SourceObject | SourceArray,
+  content: MaybeArray<SourceObject> | SourceArray,
   options: Required<ParserOptions>
 ): ProcessedFieldInfoObject {
   return Array.isArray(content)
@@ -32,7 +33,7 @@ export function parser(
  * @returns
  */
 export function arrayEntryParser(
-  content: SourceArray,
+  content: SourceObject[] | SourceArray,
   options: ParserOptions
 ): ProcessedFieldInfoObject {
   const {
@@ -118,7 +119,7 @@ export function arrayEntryParser(
  * @returns
  */
 export function objectEntryParser(
-  content: SourceObject | SourceArray,
+  content: SourceObject,
   options: ParserOptions
 ): ProcessedFieldInfoObject {
   const { forceNonNullable, forceReturnType, forceNonNullableListItem } =

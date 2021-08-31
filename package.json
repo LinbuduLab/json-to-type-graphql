@@ -1,6 +1,6 @@
 {
   "name": "json-type-graphql",
-  "version": "0.3.0",
+  "version": "0.4.1",
   "description": "Generate TypeGraphQL Class From JSON Object",
   "main": "dist/index.js",
   "repository": "https://github.com/linbudu599/JSON2TypeGraphQLClass.git",
@@ -12,8 +12,8 @@
     "release:dry": "release-it --dry-run",
     "demo": "tsnd --respawn --rs --transpile-only  ./src/sample/demo.ts",
     "build": "tsc -p tsconfig.build.json",
-    "build:watch": "tsc --watch",
-    "check": "tsc --noEmit",
+    "build:watch": "tsc --watch -p tsconfig.build.json",
+    "build:check": "tsc --noEmit -p tsconfig.build.json",
     "commit": "git add -A & git-cz",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",

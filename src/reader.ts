@@ -1,4 +1,5 @@
 import fs from "fs-extra";
+import jsonfile from "jsonfile";
 import path from "path";
 import got, { Options } from "got";
 
@@ -22,15 +23,10 @@ export async function reader(options?: ReaderOptions) {
 }
 
 export function readFromFile(filePath: string) {
-  const content = fs.readFileSync(
+  return jsonfile.readFileSync(
     path.isAbsolute(filePath) ? filePath : path.resolve(filePath),
-    "utf-8"
+    { throws: true }
   );
-  try {
-    return JSON.parse(content);
-  } catch (error) {
-    throw error;
-  }
 }
 
 export async function readFromRequest(url: string, options?: Options) {

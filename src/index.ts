@@ -41,8 +41,7 @@ export default async function handler(options: Options): Promise<void> {
     sort = true,
   } = options.generator ?? {};
 
-  const { customPostprocesser = undefined, removeUnusedDecorators = false } =
-    options.postprocesser ?? {};
+  const { customPostprocesser = undefined } = options.postprocesser ?? {};
 
   const {
     disable: disableChecker = true,
@@ -88,7 +87,7 @@ export default async function handler(options: Options): Promise<void> {
 
   postprocesser(source, {
     customPostprocesser,
-    removeUnusedDecorators,
+    // removeUnusedDecorators,
   });
 
   await checker(outputPath, {

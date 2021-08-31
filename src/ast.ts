@@ -24,11 +24,9 @@ export function invokeClassDeclarationGenerator(
   record: ClassGeneratorRecord,
   apply?: boolean
 ) {
-  const reversedRecord = record;
+  collectedInfoRecord = record;
 
-  collectedInfoRecord = reversedRecord;
-
-  classDeclarationGenerator(source, reversedRecord, apply);
+  classDeclarationGenerator(source, record, apply);
 }
 
 /**

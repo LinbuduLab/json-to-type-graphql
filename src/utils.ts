@@ -28,7 +28,7 @@ export type ClassInfo = OptionalKind<ClassDeclarationStructure>;
 
 export const ARRAY_ENTRY_STRUCTURE_PROP = "data";
 
-export const DEFAULT_ENTRY_CLASS_NAME = "__TMP_CLASS_NAME__";
+export const DEFAULT_ENTRY_CLASS_NAME = "Root";
 
 export const DEFAULT_ENTRY_CLASS_NAME_SUFFIX = "__TMP_CLASS_NAME_TYPE__";
 
@@ -76,7 +76,7 @@ export type ReaderOptions = {
 export type PreprocesserFunc = (
   raw: SourceObject | SourceObject[] | SourceArray,
   options: Omit<PreprocesserOptions, "customPreprocesser">
-) => SourceObject | SourceObject[];
+) => MaybeArray<SourceObject> | SourceArray;
 
 export type PreprocesserOptions = {
   preserveObjectOnlyInArray: boolean;
@@ -105,7 +105,7 @@ export type PostprocesserFunc = (
 ) => void;
 
 export type PostprocesserOptions = {
-  removeUnusedDecorators: boolean;
+  // removeUnusedDecorators: boolean;
   customPostprocesser?: PostprocesserFunc;
 };
 

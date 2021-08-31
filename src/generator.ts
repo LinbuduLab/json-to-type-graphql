@@ -10,6 +10,7 @@ import {
   capitalCase,
   normalizeClassFix,
   normalizeTypeFix,
+  reverseObjectKeys,
   DEFAULT_SUFFIX,
   DEFAULT_ENTRY_CLASS_NAME,
   BASE_IMPORTS,
@@ -51,12 +52,13 @@ export function generator(
     options
   );
 
-  // console.log(classGeneratorRecord["Fec"].info.properties);
-  // console.log(classGeneratorRecord["Fec"].info.properties![0]!.decorators);
-
   reverseRelation(classGeneratorRecord);
 
-  invokeClassDeclarationGenerator(source, classGeneratorRecord, true);
+  const record = options.sort
+    ? reverseObjectKeys(classGeneratorRecord)
+    : classGeneratorRecord;
+
+  invokeClassDeclarationGenerator(source, record, true);
 }
 
 export function collectClassStruInfo(
