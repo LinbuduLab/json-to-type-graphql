@@ -1,4 +1,5 @@
 import { MaybeArray, strictTypeChecker, ValidFieldType } from "./utils";
+import omit from "lodash/omit";
 
 import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
 
@@ -17,7 +18,10 @@ export function preprocesser(
     options.customPreprocesser &&
     typeof options.customPreprocesser === "function"
   ) {
-    return options.customPreprocesser(raw, options);
+    return options.customPreprocesser(
+      raw,
+      omit(options, ["customPreprocesser"])
+    );
   }
 
   if (Array.isArray(raw)) {
@@ -25,6 +29,7 @@ export function preprocesser(
   }
 
   for (const [k, v] of Object.entries(raw)) {
+    // extract as `nestedArray`
     if (Array.isArray(v)) {
       v.length && Array.isArray(v[0])
         ? // delete nested array directly at first

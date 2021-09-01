@@ -24,6 +24,16 @@ describe("should read content from various sources", () => {
     expect(Object.keys(raw).length).toBeGreaterThan(0);
   });
 
+  it("should read from JSON file(array-entry)", async () => {
+    const raw = await reader({
+      path: path.resolve(__dirname, "./fixtures/array-entry.json"),
+    });
+
+    expect(raw).not.toBeNull();
+    expect(Array.isArray(raw)).toBe(true);
+    expect(raw.length).toBeGreaterThan(0);
+  });
+
   it("should read from raw object", async () => {
     const data = {
       stringField: "linbudu",
