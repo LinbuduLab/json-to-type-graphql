@@ -17,7 +17,7 @@
     "commit": "git add -A & git-cz",
     "format": "prettier --check .",
     "format:fix": "prettier --write .",
-    "test": "jest --color --runInBand",
+    "test": "jest",
     "test:watch": "jest --color --watch --verbose --passWithNoTests",
     "test:affected": "jest --lastCommit",
     "test:list": "jest --listTests"

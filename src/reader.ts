@@ -32,10 +32,7 @@ export async function reader(options?: ReaderOptions) {
 }
 
 export function readFromFile(filePath: string) {
-  return jsonfile.readFileSync(
-    path.isAbsolute(filePath) ? filePath : path.resolve(filePath),
-    { throws: true }
-  );
+  return jsonfile.readFileSync(filePath, { throws: true });
 }
 
 export async function readFromRequest(url: string, options?: Options) {
