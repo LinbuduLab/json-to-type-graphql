@@ -1,7 +1,7 @@
 import { MaybeArray, strictTypeChecker, ValidFieldType } from "./utils";
 import omit from "lodash/omit";
 
-import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
+import type { SourceObject, SourceArray, PreprocessorOptions } from "./utils";
 
 /**
  * Pre-process raw content before it's passed to parser.
@@ -10,22 +10,22 @@ import type { SourceObject, SourceArray, PreprocesserOptions } from "./utils";
  * @param options
  * @returns
  */
-export function preprocesser(
+export function preprocessor(
   raw: MaybeArray<SourceObject> | SourceArray,
-  options: PreprocesserOptions
+  options: PreprocessorOptions
 ): MaybeArray<SourceObject> | SourceArray {
   if (
-    options.customPreprocesser &&
-    typeof options.customPreprocesser === "function"
+    options.customPreprocessor &&
+    typeof options.customPreprocessor === "function"
   ) {
-    return options.customPreprocesser(
+    return options.customPreprocessor(
       raw,
-      omit(options, ["customPreprocesser"])
+      omit(options, ["customPreprocessor"])
     );
   }
 
   if (Array.isArray(raw)) {
-    return arrayPreprocesser(raw, options);
+    return arrayPreprocessor(raw, options);
   }
 
   for (const [k, v] of Object.entries(raw)) {
@@ -34,11 +34,11 @@ export function preprocesser(
       v.length && Array.isArray(v[0])
         ? // delete nested array directly at first
           delete raw[k]
-        : (raw[k] = preprocesser(v, options));
+        : (raw[k] = preprocessor(v, options));
     }
 
     if (strictTypeChecker(v) === ValidFieldType.Object) {
-      preprocesser(v, options);
+      preprocessor(v, options);
     }
   }
 
@@ -51,9 +51,9 @@ export function preprocesser(
  * @param param1
  * @returns
  */
-export function arrayPreprocesser(
+export function arrayPreprocessor(
   raw: SourceArray,
-  { preserveObjectOnlyInArray }: PreprocesserOptions
+  { preserveObjectOnlyInArray }: PreprocessorOptions
 ) {
   if (!raw.length) return raw;
 

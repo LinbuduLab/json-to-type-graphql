@@ -1,7 +1,7 @@
 import { SourceFile } from "ts-morph";
 import omit from "lodash/omit";
 
-import type { PostprocesserOptions } from "./utils";
+import type { PostprocessorOptions } from "./utils";
 
 /**
  * Post-process source file after it's processed by generator.
@@ -9,15 +9,15 @@ import type { PostprocesserOptions } from "./utils";
  * @param options
  * @returns
  */
-export function postprocesser(
+export function postprocessor(
   source: SourceFile,
-  options: PostprocesserOptions
+  options: PostprocessorOptions
 ): void {
   if (
-    options.customPostprocesser &&
-    typeof options.customPostprocesser === "function"
+    options.customPostprocessor &&
+    typeof options.customPostprocessor === "function"
   ) {
-    options.customPostprocesser(source, omit(options, ["customPostprocesser"]));
+    options.customPostprocessor(source, omit(options, ["customPostprocessor"]));
   }
 
   // TODO: remove unused decorators

@@ -3,10 +3,10 @@ import { Project } from "ts-morph";
 import util from "util";
 
 import { reader } from "./reader";
-import { preprocesser } from "./preprocesser";
+import { preprocessor } from "./preprocessor";
 import { parser } from "./parser";
 import { generator } from "./generator";
-import { postprocesser } from "./postprocesser";
+import { postprocessor } from "./postprocessor";
 import { checker } from "./checker";
 import { writter } from "./writter";
 
@@ -22,8 +22,8 @@ import type { Options } from "./utils";
 export default async function handler(options: Options): Promise<void> {
   const content = await reader(options.reader);
 
-  const { preserveObjectOnlyInArray = true, customPreprocesser = undefined } =
-    options?.preprocesser ?? {};
+  const { preserveObjectOnlyInArray = true, customPreprocessor = undefined } =
+    options?.preprocessor ?? {};
 
   const {
     forceNonNullable = true,
@@ -41,7 +41,7 @@ export default async function handler(options: Options): Promise<void> {
     sort = true,
   } = options.generator ?? {};
 
-  const { customPostprocesser = undefined } = options.postprocesser ?? {};
+  const { customPostprocessor = undefined } = options.postprocessor ?? {};
 
   const {
     disable: disableChecker = true,
@@ -60,9 +60,9 @@ export default async function handler(options: Options): Promise<void> {
 
   const originInput = content;
 
-  const preprocessed = preprocesser(originInput, {
+  const preprocessed = preprocessor(originInput, {
     preserveObjectOnlyInArray,
-    customPreprocesser,
+    customPreprocessor,
   });
 
   const parsedInfo = parser(preprocessed, {
@@ -85,8 +85,8 @@ export default async function handler(options: Options): Promise<void> {
     sort,
   });
 
-  postprocesser(source, {
-    customPostprocesser,
+  postprocessor(source, {
+    customPostprocessor,
     // removeUnusedDecorators,
   });
 

@@ -1,8 +1,8 @@
 import {
-  preprocesser,
+  preprocessor,
   preserveObjectTypeInArrayOnly,
   preservePrimitiveTypeInArrayOnly,
-} from "../src/preprocesser";
+} from "../src/preprocessor";
 
 const objectOnlyArray = [{ foo: "bar" }];
 const primitiveOnlyArray = [1, 2, 3, 4];
@@ -38,13 +38,13 @@ describe("should process raw content", () => {
     );
   });
 
-  it("should use cutom preprocesser if specified", () => {
+  it("should use cutom preprocessor if specified", () => {
     const fn = jest.fn().mockImplementation((r) => r);
     const raw = { foo: "bar" };
 
-    preprocesser(raw, {
+    preprocessor(raw, {
       preserveObjectOnlyInArray: true,
-      customPreprocesser: fn,
+      customPreprocessor: fn,
     });
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn).toHaveBeenCalledWith(raw, { preserveObjectOnlyInArray: true });
@@ -52,17 +52,17 @@ describe("should process raw content", () => {
 
   it("should process array source", () => {
     expect(
-      preprocesser(mixedArray, { preserveObjectOnlyInArray: true })
+      preprocessor(mixedArray, { preserveObjectOnlyInArray: true })
     ).toStrictEqual(objectOnlyArray);
 
     expect(
-      preprocesser(mixedArray, { preserveObjectOnlyInArray: false })
+      preprocessor(mixedArray, { preserveObjectOnlyInArray: false })
     ).toStrictEqual(primitiveOnlyArray);
   });
 
   it("should process object", () => {
     expect(
-      preprocesser(
+      preprocessor(
         {
           foo: {
             foo1: [["foo"]],
@@ -80,7 +80,7 @@ describe("should process raw content", () => {
     });
 
     expect(
-      preprocesser(
+      preprocessor(
         {
           foo: {
             foo1: "foo",
@@ -99,7 +99,7 @@ describe("should process raw content", () => {
     });
 
     expect(
-      preprocesser(
+      preprocessor(
         {
           foo: {
             foo1: "foo",
@@ -122,12 +122,12 @@ describe("should process raw content", () => {
       },
     });
 
-    expect(preprocesser([], { preserveObjectOnlyInArray: true })).toStrictEqual(
+    expect(preprocessor([], { preserveObjectOnlyInArray: true })).toStrictEqual(
       []
     );
 
     expect(
-      preprocesser(
+      preprocessor(
         {
           foo: {
             foo1: "foo",
@@ -153,7 +153,7 @@ describe("should process raw content", () => {
     });
 
     expect(
-      preprocesser(
+      preprocessor(
         {
           foo: {
             foo1: "foo",

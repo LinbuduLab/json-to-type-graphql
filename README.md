@@ -14,7 +14,7 @@ This project is still under heavy development, the documentation is far from rea
 
 - Nest object type generation.
 - Normal generator order as `P-C1-C11-C12-C2-C21-C3-C31`.
-- Fully customizable processing flow: reader -> preprocesser -> parser -> generator -> postprocessor -> writer
+- Fully customizable processing flow: reader -> preprocessor -> parser -> generator -> postprocessor -> writer
 - ...
 
 ### Towards V 1.0
@@ -23,7 +23,7 @@ This project is still under heavy development, the documentation is far from rea
 - [ ] Unit Test
 - [ ] Features
   - [ ] Support full customizable.
-  - [ ] Powerful postprocesser.
+  - [ ] Powerful postprocessor.
   - [ ] Better checker.
   - [ ] Basic AST utils to use.
   - [ ] Better control on field return type.
@@ -160,20 +160,20 @@ Reader handles content obtainment from JSON file / URL request / raw JavaScript 
 - `url` & `options`: Using [got](https://www.npmjs.com/package/got) for data fetching like `got(url, options)`.
 - `raw`: Plain JavaScript Object / Array.
 
-After raw content is readed, it will be passed to `preprocesser`.
+After raw content is readed, it will be passed to `preprocessor`.
 
-### Preprocesser
+### Preprocessor
 
-Preprocesser will perform some extra processing on the input content:
+Preprocessor will perform some extra processing on the input content:
 
 - Recursively **delete** object pairs which value is kind of **nested array** like `[[]]`, this is not supported yet which may also cause unexpected errors.
 - Ensure array contains **either primitive values or object values**, only obejct values will be preserved when the array
-  contains mixed members. You can control this behaviour by `preprocesser.preserveObjectOnlyInArray`.
+  contains mixed members. You can control this behaviour by `preprocessor.preserveObjectOnlyInArray`.
 
-#### Preprocesser.Options
+#### Preprocessor.Options
 
 - `preserveObjectOnlyInArray`: `default: true`
-- `customPreprocesser`: Use your own custom preprocesser, which accepts `raw` from reader.
+- `customPreprocessor`: Use your own custom preprocessor, which accepts `raw` from reader.
 
 ### Parser
 
@@ -204,13 +204,13 @@ Generator will traverse the parsed info record, perform corresponding AST operat
 - `readonlyProps`: Prop names included by it will be attatched with `readonly` keyword.
 - `sort`: Should sort generated class in normal order like `P-C1-C11-C12-C2-C21-C3-C31`. `default: true`.
 
-### Postprocesser
+### Postprocessor
 
-Postprocesser is used to apply some post-processing works on generated source (`SourceFile`), you can use [ts-morph](https://ts-morph.com/) for simple and flexiable AST operations, which also powers the generator part.
+Postprocessor is used to apply some post-processing works on generated source (`SourceFile`), you can use [ts-morph](https://ts-morph.com/) for simple and flexiable AST operations, which also powers the generator part.
 
-#### Postprocesser.Options
+#### Postprocessor.Options
 
-- `customPostprocesser`: Custom post-processer accepts the source and perform extra options.
+- `customPostprocessor`: Custom post-processor accepts the source and perform extra options.
 
 ### Checker
 

@@ -73,14 +73,14 @@ export type ReaderOptions = {
 /**
  * Custom preprocess function
  */
-export type PreprocesserFunc = (
+export type PreprocessorFunc = (
   raw: SourceObject | SourceObject[] | SourceArray,
-  options: Omit<PreprocesserOptions, "customPreprocesser">
+  options: Omit<PreprocessorOptions, "customPreprocessor">
 ) => MaybeArray<SourceObject> | SourceArray;
 
-export type PreprocesserOptions = {
+export type PreprocessorOptions = {
   preserveObjectOnlyInArray: boolean;
-  customPreprocesser?: PreprocesserFunc;
+  customPreprocessor?: PreprocessorFunc;
 };
 
 export type ParserOptions = {
@@ -99,14 +99,14 @@ export type GeneratorOptions = {
   sort: boolean;
 };
 
-export type PostprocesserFunc = (
+export type PostprocessorFunc = (
   source: SourceFile,
-  options: Omit<PostprocesserOptions, "customPostprocesser">
+  options: Omit<PostprocessorOptions, "customPostprocessor">
 ) => void;
 
-export type PostprocesserOptions = {
+export type PostprocessorOptions = {
   // removeUnusedDecorators: boolean;
-  customPostprocesser?: PostprocesserFunc;
+  customPostprocessor?: PostprocessorFunc;
 };
 
 export type CheckerOptions = {
@@ -130,9 +130,9 @@ export type Options = {
    */
   reader: Partial<ReaderOptions>;
   /**
-   * Options pass to pre-processer
+   * Options pass to pre-processor
    */
-  preprocesser?: Partial<PreprocesserOptions>;
+  preprocessor?: Partial<PreprocessorOptions>;
   /**
    * Options pass to parser
    */
@@ -142,9 +142,9 @@ export type Options = {
    */
   generator?: Partial<GeneratorOptions>;
   /**
-   * Options pass to post-processer
+   * Options pass to post-processor
    */
-  postprocesser?: Partial<PostprocesserOptions>;
+  postprocessor?: Partial<PostprocessorOptions>;
   /**
    * Options pass to checker
    */

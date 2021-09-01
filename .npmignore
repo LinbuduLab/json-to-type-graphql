@@ -4,3 +4,7 @@ src
 .release-it.json
 .TODO
 yarn-error.log
+tests
+jest.config.ts                            
+jest.setup.ts  
+coverage
