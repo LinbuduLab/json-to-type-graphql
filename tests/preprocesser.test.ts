@@ -9,7 +9,7 @@ const primitiveOnlyArray = [1, 2, 3, 4];
 const mixedPrimitiveOnlyArray = [1, "linbudu", true];
 const mixedArray = [...objectOnlyArray, ...primitiveOnlyArray];
 
-describe("should process raw content", () => {
+describe.skip("should process raw content", () => {
   it("should preserve object only", () => {
     expect(preserveObjectTypeInArrayOnly(objectOnlyArray)).toStrictEqual(
       objectOnlyArray
