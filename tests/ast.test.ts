@@ -11,9 +11,15 @@ import {
   appendNamedImportsMember,
   addImportDeclaration,
   ImportType,
+  removeClassDeclarations,
   classDeclarationGeneratorFromList,
   createTmpResolverContent,
 } from "../src/ast";
+import {
+  BASE_MODULE_SPECIFIER,
+  CHECKER_IMPORTS,
+  CHECKER_MODULE_SPECIFIER,
+} from "../src/utils";
 
 let tmpFile: string;
 let source: SourceFile;
@@ -97,7 +103,7 @@ describe("should perform AST operations", () => {
     ).toEqual(["Scope", "SyntaxKind", "Decorator"]);
   });
 
-  it.only("should add import declaration", () => {
+  it("should add import declaration", () => {
     addImportDeclaration(
       source,
       "prettier",
@@ -148,5 +154,96 @@ describe("should perform AST operations", () => {
         .getNamedImports()
         .map((x) => x.getText())
     ).toEqual(["green"]);
+  });
+
+  it("should remove class declaration", () => {
+    removeClassDeclarations(source, ["Foo"], true);
+    expect(source.getClasses().map((cls) => cls.getName()!)).not.toContain(
+      "Foo"
+    );
+    expect(source.getClasses().map((cls) => cls.getName()!)).toContain("Bar");
+  });
+
+  it("should create class declarations", () => {
+    classDeclarationGeneratorFromList(
+      source,
+      [{ name: "FooBar" }, { name: "Wuhu" }],
+      true
+    );
+    expect(source.getClasses().map((cls) => cls.getName()!)).toContain(
+      "FooBar"
+    );
+    expect(source.getClasses().map((cls) => cls.getName()!)).toContain("Wuhu");
+  });
+
+  it.only("should create tmp resolver content", () => {
+    createTmpResolverContent(
+      source,
+      {
+        buildSchemaOptions: {
+          emitSchemaFile: true,
+          nullableByDefault: true,
+          dateScalarMode: "timestamp",
+        },
+        disable: false,
+        keep: true,
+        execaOptions: {},
+        executeOptions: {},
+      },
+      "Root"
+    );
+
+    expect(
+      source.getImportDeclaration(
+        (x) => x.getModuleSpecifierValue() === CHECKER_MODULE_SPECIFIER
+      )
+    ).toBeDefined();
+
+    expect(
+      source
+        .getImportDeclaration(
+          (x) => x.getModuleSpecifierValue() === CHECKER_MODULE_SPECIFIER
+        )
+        ?.getDefaultImport()
+        ?.getText()
+    ).toBeUndefined();
+
+    expect(
+      source
+        .getImportDeclaration(
+          (x) => x.getModuleSpecifierValue() === BASE_MODULE_SPECIFIER
+        )
+        ?.getNamedImports()
+        .map((x) => x.getText())
+    ).toEqual(CHECKER_IMPORTS);
+
+    const tmpClass = source.getClass((cls) => cls.getName() === "TmpResolver");
+
+    expect(tmpClass).toBeDefined();
+
+    expect(tmpClass?.getDecorator("Resolver")).toBeDefined();
+
+    expect(
+      tmpClass
+        ?.getDecorator("Resolver")
+        ?.getArguments()
+        .map((x) => x.getText())[0]
+    ).toBe(`(type)=>Root`);
+
+    expect(tmpClass?.getMethod("TmpResolver")).toBeDefined();
+    expect(tmpClass?.getMethod("TmpResolver")?.isAsync()).toBeTruthy();
+    expect(
+      tmpClass?.getMethod("TmpResolver")?.getDecorator("Query")
+    ).toBeDefined();
+    expect(
+      tmpClass
+        ?.getMethod("TmpResolver")
+        ?.getDecorator("Query")
+        ?.getArguments()
+        .map((x) => x.getText())[0]
+    ).toBe(`(type)=>[Root]`);
+    expect(tmpClass?.getMethod("TmpResolver")?.getReturnType()).toBe(
+      "Promise<Root[]>"
+    );
   });
 });
