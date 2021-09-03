@@ -47,9 +47,13 @@ export function classDeclarationGenerator(
     v.generated = true;
     if (v.children.length) {
       for (const child of v.children) {
-        classDeclarationGenerator(source, {
-          [child]: collectedInfoRecord[child],
-        });
+        classDeclarationGenerator(
+          source,
+          {
+            [child]: collectedInfoRecord[child],
+          },
+          apply
+        );
       }
     }
   }
@@ -249,9 +253,6 @@ export function addImportDeclaration(
       });
 
       break;
-
-    default:
-      return;
   }
 
   apply && source.saveSync();
