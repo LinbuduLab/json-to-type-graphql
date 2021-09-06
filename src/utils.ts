@@ -183,6 +183,7 @@ export function ensureArray<T>(maybeArray: T | T[]): T[] {
   return Array.isArray(maybeArray) ? maybeArray : [maybeArray];
 }
 
+// FIXME: Use Map to ensure k-v are placed as insert order
 /**
  * Simply reverse object by reversing its keys.
  * @param object
