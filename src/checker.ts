@@ -26,9 +26,9 @@ export async function checker(outputPath: string, options: CheckerOptions) {
 
   const checkerOnlySource = project.addSourceFileAtPath(tmpFilePath);
 
-  createTmpResolverContent(checkerOnlySource, options, "Root");
-
   try {
+    createTmpResolverContent(checkerOnlySource, options, "Root");
+
     await execa(
       `ts-node ${tmpFilePath}`,
       [
@@ -49,6 +49,6 @@ export async function checker(outputPath: string, options: CheckerOptions) {
   } catch (error) {
     throw error;
   } finally {
-    !options.keep && fs.rmSync(tmpFilePath);
+    !options.keep && fs.existsSync(tmpFilePath) && fs.rmSync(tmpFilePath);
   }
 }

@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs-extra";
 import { reader } from "../src/reader";
 
-describe.skip("should read content from various sources", () => {
+describe("should read content from various sources", () => {
   it("should throw when no options provided", async () => {
     await expect(reader()).rejects.toThrow("You must provide reader options!");
   });
