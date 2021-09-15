@@ -12,26 +12,12 @@ pnpm i json-type-graphql --save
 
 This project is still under heavy development, the documentation is far from ready, but basic features are already supported:
 
-- Nest object type generation.
+- Support `nested object type`(like: `{ foo: { bar: { baz:{} } } }`) and `array entry json`(like: `[{},{}]`) type generation.
 - Normal generator order as `P-C1-C11-C12-C2-C21-C3-C31`.
-- Fully customizable processing flow: reader -> preprocessor -> parser -> generator -> postprocessor -> writer
+- Customizable processing flow: reader / preprocessor / postprocessor / writer
 - ...
 
-### Towards V 1.0
-
-- [ ] Detailed Documentation
-- [ ] Unit Test
-- [ ] Features
-  - [ ] Support full customizable.
-  - [ ] Powerful postprocessor.
-  - [ ] Better checker.
-  - [ ] Basic AST utils to use.
-  - [ ] Better control on field return type.
-  - [ ] `buildSchemaSync` options for checker.
-
 ## Example
-
-Generate TypeGraphQL class from JSON object:
 
 > Run `yarn demo` to explore!
 
@@ -64,32 +50,31 @@ JSON:
 ```typescript
 import path from "path";
 import fs from "fs-extra";
-import transformer from "..";
-
-const outputPath = path.join(__dirname, "./generated.ts");
-
-fs.existsSync(outputPath) && fs.rmSync(outputPath);
+import transformer from "json-type-garphql";
 
 (async () => {
   await transformer({
+    // Provide json file path
     reader: { path: path.join(__dirname, "./demo.json") },
+    // Customize parser behaviour
     parser: {
       forceNonNullable: false,
-      forceReturnType: false,
-      forceNonNullableListItem: false,
     },
+    // Customize generator behaviour
     generator: { entryClassName: "Root", sort: true },
+    // Check can generated TypeGraphQL class be used normally
     checker: {
       disable: false,
     },
+    // Write generated file!
     writter: {
-      outputPath,
+      outputPath: path.join(__dirname, "./generated.ts"),
     },
   });
 })();
 ```
 
-> More options can be found in [utils.ts](./src/utils.ts)
+> More options will be introduced below.
 
 generated:
 
@@ -148,89 +133,112 @@ export class Root {
 }
 ```
 
-## Simple Documentation
+## Options
 
 ### Reader
 
-Reader handles content obtainment from JSON file / URL request / raw JavaScript object, you must provide at least one of `reader.path` / `reader.url` / `reader.raw` options.
+**Reader** is responsible for reading data from different sources including `JSON File` / `URL Request` / `Raw JavaScript Object`, you must provide one of `reader.path` / `reader.url` / `reader.raw` options.
 
 #### Reader.Options
 
-- `path`: **Absoulte** JSON file path.
-- `url` & `options`: Using [got](https://www.npmjs.com/package/got) for data fetching like `got(url, options)`.
-- `raw`: Plain JavaScript Object / Array.
+- `path`(`string`): **Absoulte** JSON file path.
+- `url`(`string`) & `options`(`Got Options`): Using [got](https://www.npmjs.com/package/got) for data fetching: `got(url, options)`.
+- `raw`(`object` | `array`): Vanilla JavaScript Object / Array.
 
-After raw content is readed, it will be passed to `preprocessor`.
+After content acquisition got completed, the content will be passed to next handler called **preprocessor**.
 
 ### Preprocessor
 
-Preprocessor will perform some extra processing on the input content:
+Preprocessor will perform some extra pre-processing works in the incoming content:
 
-- Recursively **delete** object pairs which value is kind of **nested array** like `[[]]`, this is not supported yet which may also cause unexpected errors.
-- Ensure array contains **either primitive values or object values**, only obejct values will be preserved when the array
-  contains mixed members. You can control this behaviour by `preprocessor.preserveObjectOnlyInArray`.
+- **Recursively delete** object field which value is kind of **nested array** like `[[]]`, this is not supported yet which may cause unexpected behaviours or errors.
+- Ensure array contains either **primitive type values** or **object type values**, by default,**only obejct values will be preserved** when the array
+  contains both kinds of members(You can control this behaviour by `preprocessor.preserveObjectOnlyInArray`).
 
 #### Preprocessor.Options
 
-- `preserveObjectOnlyInArray`: `default: true`
-- `customPreprocessor`: Use your own custom preprocessor, which accepts `raw` from reader.
+- `preserveObjectOnlyInArray`(`boolean`): `default: true`
+- `customPreprocessor`(`(raw: object | array) => object | array`): Use your own custom preprocessor, which accepts content from reader, and should return JavaScript Object / Array.
 
 ### Parser
 
-Parser will transform the preprocessed raw content to specific object structure,
+**Parser** will transform the pre-processed content to specific object structure,
 which will be consumed by `generator`.
 
-Array entry structure(like `[]`) and object entry structure(like `{}`) will be parsed differently.
+> Array entry structure(like `[]`) and object entry structure(like `{}`) will be parsed differently.
 
 #### Parser.Options
 
-- `forceNonNullable`: Mark all field as non-nullale. `default: true`
-- `forceNonNullableListItem`: Mark all list item as non-nullale.`default: false`
-- `forceReturnType`: Generate return type for even string / boolean / field like `@Field((type) => String)`. `default: false`
-- `arrayEntryProp`: When parsing array-entry structure, use specified prop name like: `data: Data[]`. `default: 'data'`
+- `forceNonNullable`(`boolean`): Mark all field as non-nullale. `default: true`
+- `forceNonNullableListItem`(`boolean`): Mark all list item as non-nullale. `default: false`
+- `forceReturnType`(`boolean`): Generate return type for even `string` / `boolean` field like `@Field((type) => String)`. `default: false`
+- `arrayEntryProp`(`string`): When parsing array-entry structure, use specified prop name like: `data: Data[]`. `default: 'data'`.
+  For example, `[{ foo: 1 }]` will be parsed to:
 
-> Custom parser is not supported now.
+  ```javascript
+  class Data {
+    foo: number;
+  }
+
+  class Root {
+    data: Data[];
+  }
+  ```
 
 ### Generator
 
-Generator will traverse the parsed info record, perform corresponding AST operations to generate TypeGraphQL class-based types.
+**Generator** will traverse the parsed info, perform corresponding AST operations to generate class definitions with TypeGraphQL decorators.
 
 #### Generator.Options
 
-- `entryClassName`: The top-level generated entry class name. `default: 'Root'`.
-- `prefix`: Prefix for generated class name, you can set `prefix: true` to simply avoid repeated class specifier(by using parent class as child class name prefix, like `RootChildSomeChildProp` is from `Root-Child-SomeType`). `default: false`
-- `suffix`: Suffix for generated class name. `default: false`.
-- `publicProps`: Prop names included by it will be attatched with `public` keyword.
-- `readonlyProps`: Prop names included by it will be attatched with `readonly` keyword.
-- `sort`: Should sort generated class in normal order like `P-C1-C11-C12-C2-C21-C3-C31`. `default: true`.
+- `entryClassName`(`string`): The top-level generated entry class name. `default: 'Root'`.
+- `prefix`(`boolean` | `string`): Prefix for generated class name, you can set `prefix: true` to simply avoid repeated class specifier. `default: false`.
+  By using parent class in child class name's prefix, like `RootChildSomeChildProp` is from:
+
+  ```javascript
+  class Root {
+    child: RootChild;
+  }
+
+  class RootChild {
+    someChildProp: RootChildSomeChildProp;
+  }
+
+  class RootChildSomeChildProp {}
+  ```
+
+- `suffix`(`boolean` | `string`): Suffix for generated class name, e.g. `RootType`, `Type` is the specified suffix.`default: false`.
+- `publicProps`(`string[]`): Prop names included by it will be attatched with `public` keyword.
+- `readonlyProps`(`string[]`): Prop names included by it will be attatched with `readonly` keyword.
+- `sort`(`boolean`): Should sort generated class in normal order like `P-C1-C11-C12-C2-C21-C3-C31`. `default: true`.
 
 ### Postprocessor
 
-Postprocessor is used to apply some post-processing works on generated source (`SourceFile`), you can use [ts-morph](https://ts-morph.com/) for simple and flexiable AST operations, which also powers the generator part.
+**Postprocessor** is used to apply some post-process works on generated source (`TypeScript SourceFile`), you can use [ts-morph](https://ts-morph.com/) for simple and flexiable AST operations, which also powers the generator part indeed.
 
 #### Postprocessor.Options
 
-- `customPostprocessor`: Custom post-processor accepts the source and perform extra options.
+- `customPostprocessor`(`(source: SourceFile) => SourceFile`): Custom post-processor accepts the AST source file.
 
 ### Checker
 
-Checker will use generated class to create a tmp reoslver, invoking `TypeGraphQL.buildSchemaSync` method to check does generated file work correctly.
+**Checker** will use generated class definitions to create a tmp reoslver, invoking `TypeGraphQL.buildSchemaSync` method to check if generated file works correctly.
 
-Under the hood, we're using `ts-node tmp-file.ts --compiler-options [options]` to perform the check.
+We're using `ts-node tmp-file.ts --compiler-options [options]` to perform the check under the hood.
 
 #### Checker.Options
 
-- `disable`: Disable checker. `default: true`
-- `keep`: Keey generated tmp checker file. `default: false`
-- `execaOptions`: Extra options passed to [execa](https://www.npmjs.com/package/execa).
-- `executeOptions`: Extra options passed to ts-node `--compiler-options`, which keeps same with TypeSctipt CompilerOptions.
+- `disable`(`boolean`): Disable checker. `default: true`
+- `keep`(`boolean`): Keey generated tmp checker file. `default: false`
+- `execaOptions`(`Execa Options`): Extra options passed to [execa](https://www.npmjs.com/package/execa).
+- `executeOptions`(`Ts-node compile Options`): Extra options passed to ts-node `--compiler-options`, which keeps same with TypeSctipt CompilerOptions.
 
 ### Writer
 
-Writer will format generated source file, you can also use custom writer(coming soon).
+**Writer** will format generated source file.
 
 #### Writer.options
 
-- `outputPath`: Output path. required.
-- `format`: Should perform formatting by `Prettier`.
-- `formatOptions`: Options passed to `Prettier`.
+- `outputPath`(`string`): Output path. required.
+- `format`(`boolean`): Should perform formatting by `Prettier`. `default: true`.
+- `formatOptions`(`Prettier Options`): Options passed to `Prettier.format`.
