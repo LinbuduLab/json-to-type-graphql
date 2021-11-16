@@ -16,7 +16,7 @@
     "numberField": 200,
     "stringField": "success",
     "primitiveArrayField": [1, 2, 3, 4, 5],
-    "mixedFieldrs": [
+    "mixedFields": [
       1,
       2,
       {

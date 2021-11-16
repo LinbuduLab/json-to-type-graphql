@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs-extra";
 import transformer from "..";
+import { reader, parser, generator, checker, writter } from "..";
 
 const outputPath = path.join(__dirname, "./generated.ts");
 

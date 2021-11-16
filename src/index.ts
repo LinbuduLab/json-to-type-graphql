@@ -1,6 +1,5 @@
 import fs from "fs-extra";
 import { Project } from "ts-morph";
-import util from "util";
 
 import { reader } from "./reader";
 import { preprocessor } from "./preprocessor";
@@ -10,7 +9,7 @@ import { postprocessor } from "./postprocessor";
 import { checker } from "./checker";
 import { writter } from "./writter";
 
-import { ARRAY_ENTRY_STRUCTURE_PROP, DEFAULT_ENTRY_CLASS_NAME } from "./utils";
+import { normalizeOptions } from "./utils";
 import type { Options } from "./utils";
 
 /**
@@ -22,81 +21,39 @@ import type { Options } from "./utils";
 export default async function handler(options: Options): Promise<void> {
   const content = await reader(options.reader);
 
-  const { preserveObjectOnlyInArray = true, customPreprocessor = undefined } =
-    options?.preprocessor ?? {};
-
   const {
-    forceNonNullable = true,
-    forceReturnType = false,
-    arrayEntryProp = ARRAY_ENTRY_STRUCTURE_PROP,
-    forceNonNullableListItem = false,
-  } = options.parser ?? {};
-
-  const {
-    prefix = false,
-    publicProps = [],
-    readonlyProps = [],
-    suffix = false,
-    entryClassName = DEFAULT_ENTRY_CLASS_NAME,
-    sort = true,
-  } = options.generator ?? {};
-
-  const { customPostprocessor = undefined } = options.postprocessor ?? {};
-
-  const {
-    disable: disableChecker = true,
-    keep = false,
-    execaOptions = {},
-    executeOptions = {},
-    buildSchemaOptions = {},
-  } = options.checker ?? {};
-
-  const {
-    format = true,
-    override,
-    formatOptions,
-    outputPath,
-  } = options.writter ?? {};
+    normalizedPreprocessorOptions,
+    normalizedParserOptions,
+    normalizedGeneratorOptions,
+    normalizedPostprocessorOptions,
+    normalizedCheckerOptions,
+    normalizedWritterOptions,
+  } = normalizeOptions(options);
 
   const originInput = content;
 
-  const preprocessed = preprocessor(originInput, {
-    preserveObjectOnlyInArray,
-    customPreprocessor,
-  });
+  const preprocessed = preprocessor(originInput, normalizedPreprocessorOptions);
 
-  const parsedInfo = parser(preprocessed, {
-    forceNonNullable,
-    forceReturnType,
-    arrayEntryProp,
-    forceNonNullableListItem,
-  });
+  const parsedInfo = parser(preprocessed, normalizedParserOptions);
 
-  fs.ensureFileSync(outputPath);
+  fs.ensureFileSync(normalizedWritterOptions.outputPath);
 
-  const source = new Project().addSourceFileAtPath(outputPath);
+  const source = new Project().addSourceFileAtPath(
+    normalizedWritterOptions.outputPath
+  );
 
-  generator(source, parsedInfo, {
-    prefix,
-    publicProps,
-    readonlyProps,
-    entryClassName,
-    suffix,
-    sort,
-  });
+  generator(source, parsedInfo, normalizedGeneratorOptions);
 
-  postprocessor(source, {
-    customPostprocessor,
-    // removeUnusedDecorators,
-  });
+  postprocessor(source, normalizedPostprocessorOptions);
 
-  await checker(outputPath, {
-    disable: sort || disableChecker,
-    keep,
-    execaOptions,
-    executeOptions,
-    buildSchemaOptions,
-  });
-
-  writter({ outputPath, format, formatOptions, override });
+  await checker(normalizedWritterOptions.outputPath, normalizedCheckerOptions);
+  writter(normalizedWritterOptions);
 }
+
+export * from "./reader";
+export * from "./preprocessor";
+export * from "./parser";
+export * from "./generator";
+export * from "./postprocessor";
+export * from "./checker";
+export * from "./writter";

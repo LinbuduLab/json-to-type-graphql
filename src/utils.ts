@@ -155,6 +155,92 @@ export type Options = {
   writter: WriterOptions;
 };
 
+export type InferPartialTypeParam<T> = T extends Partial<infer R> ? R : T;
+
+export type NormalizedOptions = {
+  [K in keyof Omit<
+    Options,
+    "reader"
+  > as `normalized${Capitalize<K>}Options`]-?: InferPartialTypeParam<
+    Options[K]
+  >;
+};
+
+export function normalizeOptions(options: Options): NormalizedOptions {
+  const { preserveObjectOnlyInArray = true, customPreprocessor = undefined } =
+    options?.preprocessor ?? {};
+
+  const {
+    forceNonNullable = true,
+    forceReturnType = false,
+    arrayEntryProp = ARRAY_ENTRY_STRUCTURE_PROP,
+    forceNonNullableListItem = false,
+  } = options.parser ?? {};
+
+  const {
+    prefix = false,
+    publicProps = [],
+    readonlyProps = [],
+    suffix = false,
+    entryClassName = DEFAULT_ENTRY_CLASS_NAME,
+    sort = true,
+  } = options.generator ?? {};
+
+  const { customPostprocessor = undefined } = options.postprocessor ?? {};
+
+  const {
+    disable: disableChecker = true,
+    keep = false,
+    execaOptions = {},
+    executeOptions = {},
+    buildSchemaOptions = {},
+  } = options.checker ?? {};
+
+  const {
+    format = true,
+    override = false,
+    formatOptions = {},
+    outputPath,
+  } = options.writter ?? {};
+
+  return {
+    normalizedPreprocessorOptions: {
+      preserveObjectOnlyInArray,
+      customPreprocessor,
+    },
+    normalizedParserOptions: {
+      forceNonNullable,
+      forceReturnType,
+      arrayEntryProp,
+      forceNonNullableListItem,
+    },
+    normalizedGeneratorOptions: {
+      prefix,
+      publicProps,
+      readonlyProps,
+      suffix,
+      entryClassName,
+      sort,
+    },
+    normalizedPostprocessorOptions: {
+      customPostprocessor,
+    },
+    normalizedCheckerOptions: {
+      disable: sort || disableChecker,
+      keep,
+      execaOptions,
+      executeOptions,
+      buildSchemaOptions,
+    },
+    normalizedWritterOptions: {
+      format,
+      override,
+      formatOptions,
+      outputPath,
+    },
+  };
+}
+
 export type ProcessedFieldInfoObject = Record<string, ParsedFieldInfo>;
 
 /**

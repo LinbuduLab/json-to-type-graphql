@@ -133,6 +133,42 @@ export class Root {
 }
 ```
 
+## Programmatic Usage
+
+```typescript
+import {
+  reader,
+  parser,
+  preprocessor,
+  generator,
+  writter,
+} from "json-type-graphql";
+
+export default async function handler(options: Options): Promise<void> {
+  // read from data source you want
+  // you can also use custom reader
+  const content = await reader(options.reader);
+
+  // make some custom processing
+  const preprocessed = preprocessor(content, normalizedPreprocessorOptions);
+
+  // parse content
+  const parsedInfo = parser(preprocessed, normalizedParserOptions);
+
+  fs.ensureFileSync(normalizedWritterOptions.outputPath);
+
+  const source = new Project().addSourceFileAtPath(
+    normalizedWritterOptions.outputPath
+  );
+
+  // generate AST and result!
+  generator(source, parsedInfo, normalizedGeneratorOptions);
+
+  // write!
+  writter(normalizedWritterOptions);
+}
+```
+
 ## Options
 
 ### Reader
