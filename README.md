@@ -1,5 +1,7 @@
 # json-type-graphql
 
+> **Moved to [GraphQL-Packages](https://github.com/LinbuduLab/GraphQL-Packages).**
+
 ## Start
 
 ```bash
