@@ -1,6 +1,6 @@
 # json-type-graphql
 
-> **Moved to [GraphQL-Packages](https://github.com/LinbuduLab/GraphQL-Packages).**
+Generate TypeGraphQL class definition from JSON/Remote API/JSON File.
 
 ## Start
 
